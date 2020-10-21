@@ -1,0 +1,25 @@
+{
+    "type": "object",
+    "required": [
+        "buildingId",
+        "name"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "name": {
+            "type": [
+                "string",
+                "null"
+            ]
+        }
+    },
+    "properties": {
+        "buildingId": {
+            "type": "string",
+            "pattern": "^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$"
+        },
+        "name": {
+            "$ref": "#/definitions/name"
+        }
+    }
+}

@@ -1,0 +1,33 @@
+{
+    "type": "array",
+    "items": [
+        {
+            "type": "number"
+        },
+        {
+            "type": "string"
+        },
+        {
+            "$ref": "#/definitions/name"
+        },
+        {
+            "type": "string",
+            "enum": ["NW", "NE", "SW", "SE"]
+        }
+    ],
+    "minItems": 2,
+    "maxItems": 3,
+    "uniqueItems": true,
+    "definitions": {
+        "name": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "minLength": 2
+        }
+    },
+    "additionalItems": {
+        "type": "string"
+    }
+}
