@@ -13,7 +13,7 @@ final class ShorthandTest extends TestCase
     /**
      * @test
      */
-    public function it_converts_empty_shorthand_string_to_json_schema_string()
+    public function it_converts_empty_shorthand_string_to_json_schema_string(): void
     {
         $schema = Shorthand::convertToJsonSchema(['test' => '']);
 
@@ -26,7 +26,7 @@ final class ShorthandTest extends TestCase
     /**
      * @test
      */
-    public function it_converts_enum_shorthand_to_json_schema_string()
+    public function it_converts_enum_shorthand_to_json_schema_string(): void
     {
         $schema = Shorthand::convertToJsonSchema(['test' => 'enum|available|blocked|bought']);
 
@@ -39,7 +39,7 @@ final class ShorthandTest extends TestCase
     /**
      * @test
      */
-    public function it_converts_shorthand_type_to_json_schema()
+    public function it_converts_shorthand_type_to_json_schema(): void
     {
         foreach (self::SHORTHAND_TYPES as $type) {
             $schema = Shorthand::convertToJsonSchema(['test' => $type]);
@@ -54,7 +54,7 @@ final class ShorthandTest extends TestCase
     /**
      * @test
      */
-    public function it_converts_nullable_shorthand_type_to_nullable_json_schema_type()
+    public function it_converts_nullable_shorthand_type_to_nullable_json_schema_type(): void
     {
         foreach (self::SHORTHAND_TYPES as $type) {
             $schema = Shorthand::convertToJsonSchema(['test' => $type.'|null']);
@@ -69,7 +69,7 @@ final class ShorthandTest extends TestCase
     /**
      * @test
      */
-    public function it_converts_unknown_type_to_json_schema_ref()
+    public function it_converts_unknown_type_to_json_schema_ref(): void
     {
         $schema = Shorthand::convertToJsonSchema(['test' => 'User']);
 
@@ -82,7 +82,7 @@ final class ShorthandTest extends TestCase
     /**
      * @test
      */
-    public function it_converts_array_shorthand_type_to_json_schema_array_type()
+    public function it_converts_array_shorthand_type_to_json_schema_array_type(): void
     {
         foreach (self::SHORTHAND_TYPES as $type) {
             $schema = Shorthand::convertToJsonSchema(['test' => $type.'[]']);
@@ -97,7 +97,7 @@ final class ShorthandTest extends TestCase
     /**
      * @test
      */
-    public function it_converts_unknown_shorthand_array_type_to_json_schema_array_with_ref_items()
+    public function it_converts_unknown_shorthand_array_type_to_json_schema_array_with_ref_items(): void
     {
         $schema = Shorthand::convertToJsonSchema(['test' => 'User[]']);
 
@@ -110,7 +110,7 @@ final class ShorthandTest extends TestCase
     /**
      * @test
      */
-    public function it_parses_shorthand_validation_and_adds_it_to_json_schema()
+    public function it_parses_shorthand_validation_and_adds_it_to_json_schema(): void
     {
         $schema = Shorthand::convertToJsonSchema([
             'test1' => 'string|format:email|maxLength:255',
@@ -135,7 +135,7 @@ final class ShorthandTest extends TestCase
     /**
      * @test
      */
-    public function it_converts_shorthand_top_level_array_to_json_schema_array()
+    public function it_converts_shorthand_top_level_array_to_json_schema_array(): void
     {
         $variants = ['Profile', 'Profile[]'];
 
@@ -149,7 +149,7 @@ final class ShorthandTest extends TestCase
     /**
      * @test
      */
-    public function it_converts_top_level_reference_to_json_schema_reference()
+    public function it_converts_top_level_reference_to_json_schema_reference(): void
     {
         $variants = ['Profile', '#/definitions/Profile'];
 
@@ -163,7 +163,7 @@ final class ShorthandTest extends TestCase
     /**
      * @test
      */
-    public function it_converts_shorthand_object_to_json_schema_object()
+    public function it_converts_shorthand_object_to_json_schema_object(): void
     {
         $schema = Shorthand::convertToJsonSchema([
             '$title' => 'Prospect',
@@ -200,7 +200,13 @@ final class ShorthandTest extends TestCase
         );
     }
 
-    private function jsonSchemaObject(array $properties, array $required = [], $title = null): array
+    /**
+     * @param array<string, mixed> $properties
+     * @param string[] $required
+     * @param null|string $title
+     * @return array<string, mixed>
+     */
+    private function jsonSchemaObject(array $properties, array $required = [], string $title = null): array
     {
         $obj = [
             'type' => 'object',

@@ -10,13 +10,14 @@ declare(strict_types=1);
 
 namespace OpenCodeModeling\JsonSchemaToPhp\Type;
 
-final class ObjectType implements TypeDefinition, NullableAware, RequiredAware
+final class ObjectType implements TypeDefinition, NullableAware, RequiredAware, TitleAware
 {
     use PopulateRequired;
 
     protected ?string $name = null;
     protected bool $isRequired = false;
     protected bool $nullable = false;
+    protected ?string $title = null;
 
     /**
      * @var null|bool|TypeSet
@@ -180,6 +181,16 @@ final class ObjectType implements TypeDefinition, NullableAware, RequiredAware
     public function required(): array
     {
         return $this->required;
+    }
+
+    public function title(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(string $title): void
+    {
+        $this->title = $title;
     }
 
     /**

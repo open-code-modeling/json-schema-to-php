@@ -10,8 +10,20 @@ declare(strict_types=1);
 
 namespace OpenCodeModeling\JsonSchemaToPhp\Type;
 
+use OpenCodeModeling\JsonSchemaToPhp\Shorthand\Shorthand;
+
 final class Type
 {
+    /**
+     * @param array<string, mixed> $shorthand
+     * @param string|null $name
+     * @return TypeSet
+     */
+    public static function fromShorthand(array $shorthand, ?string $name = null): TypeSet
+    {
+        return self::fromDefinition(Shorthand::convertToJsonSchema($shorthand), $name);
+    }
+
     /**
      * @param array<string, mixed> $definition
      * @param string|null $name
