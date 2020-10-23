@@ -50,7 +50,9 @@ final class ArrayType implements TypeDefinition
         $type = $definition['type'] ?? '$ref';
 
         if ($type !== static::type()) {
-            throw new \RuntimeException(\sprintf('The type "%s" does not match type class "%s"', $type, static::class));
+            throw new \RuntimeException(
+                \sprintf('The type "%s" does not match type "%s" class "%s"', $type, self::type(), static::class)
+            );
         }
 
         $self = new static();

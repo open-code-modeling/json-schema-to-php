@@ -56,7 +56,9 @@ final class ObjectType implements TypeDefinition, NullableAware, RequiredAware
         $type = $definition['type'];
 
         if ($type !== static::type()) {
-            throw new \RuntimeException(\sprintf('The type "%s" does not match type class "%s"', $type, static::class));
+            throw new \RuntimeException(
+                \sprintf('The type "%s" does not match type "%s" class "%s"', $type, self::type(), static::class)
+            );
         }
 
         $self = new static();

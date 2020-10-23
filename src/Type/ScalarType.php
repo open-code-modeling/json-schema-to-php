@@ -45,7 +45,9 @@ abstract class ScalarType implements TypeDefinition, RequiredAware, NullableAwar
         $type = $definition['type'];
 
         if ($type !== static::type()) {
-            throw new \RuntimeException(\sprintf('The type "%s" does not match type class "%s"', $type, static::class));
+            throw new \RuntimeException(
+                \sprintf('The type "%s" does not match type "%s" class "%s"', $type, static::type(), static::class)
+            );
         }
 
         $self = new static();
