@@ -80,6 +80,6 @@ final class IntegerType extends ScalarType
 
     public static function type(): string
     {
-        return self::TYPE_NUMBER;
+        return self::TYPE_INTEGER;
     }
 }
