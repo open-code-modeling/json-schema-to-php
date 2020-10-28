@@ -34,44 +34,46 @@ final class Shorthand
             if (! \is_string($property) || empty($property)) {
                 throw InvalidShorthand::emptyString($shorthand);
             }
-
             $schemaProperty = $property;
 
-            if (\mb_substr($property, -1) === '?') {
-                $schemaProperty = \mb_substr($property, 0, -1);
-            } elseif ($schemaProperty === '$ref') {
-                if (\count($shorthand) > 1) {
-                    throw InvalidShorthand::refWithOtherProperties($shorthand);
-                }
+            switch (true) {
+                case \mb_substr($property, -1) === '?':
+                    $schemaProperty = \mb_substr($property, 0, -1);
+                    break;
+                case $schemaProperty === '$ref':
+                    if (\count($shorthand) > 1) {
+                        throw InvalidShorthand::refWithOtherProperties($shorthand);
+                    }
 
-                if (! \is_string($shorthandDefinition)) {
-                    throw InvalidShorthand::refNotString($shorthand);
-                }
+                    if (! \is_string($shorthandDefinition)) {
+                        throw InvalidShorthand::refNotString($shorthand);
+                    }
 
-                $shorthandDefinition = \str_replace('#/definitions/', '', $shorthandDefinition);
+                    $shorthandDefinition = \str_replace('#/definitions/', '', $shorthandDefinition);
 
-                return [
-                    '$ref' => "#/definitions/$shorthandDefinition",
-                ];
-            } elseif ($schemaProperty === '$items') {
-                if (\count($shorthand) > 1) {
-                    throw InvalidShorthand::itemsWithOtherProperties($shorthand);
-                }
+                    return [
+                        '$ref' => "#/definitions/$shorthandDefinition",
+                    ];
+                case $schemaProperty === '$items':
+                    if (\count($shorthand) > 1) {
+                        throw InvalidShorthand::itemsWithOtherProperties($shorthand);
+                    }
 
-                if (! \is_string($shorthandDefinition)) {
-                    throw InvalidShorthand::itemsNotString($shorthand);
-                }
+                    if (! \is_string($shorthandDefinition)) {
+                        throw InvalidShorthand::itemsNotString($shorthand);
+                    }
 
-                if (\mb_substr($shorthandDefinition, -2) !== '[]') {
-                    $shorthandDefinition .= '[]';
-                }
+                    if (\mb_substr($shorthandDefinition, -2) !== '[]') {
+                        $shorthandDefinition .= '[]';
+                    }
 
-                return self::convertShorthandStringToJsonSchema($shorthandDefinition);
-            } elseif ($schemaProperty === '$title') {
-                $schema['title'] = $shorthandDefinition;
-                continue;
-            } else {
-                $schema['required'][] = $schemaProperty;
+                    return self::convertShorthandStringToJsonSchema($shorthandDefinition);
+                case $schemaProperty === '$title':
+                    $schema['title'] = $shorthandDefinition;
+                    continue 2;
+                default:
+                    $schema['required'][] = $schemaProperty;
+                    break;
             }
 
             if (\is_array($shorthandDefinition)) {
