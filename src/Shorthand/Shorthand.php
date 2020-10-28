@@ -10,7 +10,8 @@ declare(strict_types=1);
 
 namespace OpenCodeModeling\JsonSchemaToPhp\Shorthand;
 
-use LogicException;
+use OpenCodeModeling\JsonSchemaToPhp\Exception\InvalidShorthand;
+use OpenCodeModeling\JsonSchemaToPhp\Exception\LogicException;
 
 final class Shorthand
 {
@@ -31,29 +32,20 @@ final class Shorthand
 
         foreach ($shorthand as $property => $shorthandDefinition) {
             if (! \is_string($property) || empty($property)) {
-                throw new LogicException(\sprintf(
-                    'Shorthand %s contains an empty or non string property. Cannot deal with that!',
-                    \json_encode($shorthand)
-                ));
+                throw InvalidShorthand::emptyString($shorthand);
             }
 
             $schemaProperty = $property;
 
             if (\mb_substr($property, -1) === '?') {
-                $schemaProperty = \mb_substr($property, 0, \strlen($property) - 1);
+                $schemaProperty = \mb_substr($property, 0, -1);
             } elseif ($schemaProperty === '$ref') {
                 if (\count($shorthand) > 1) {
-                    throw new LogicException(\sprintf(
-                       'Shorthand %s contains a top level ref property "$ref", but it is not the only property!
-                       \nA top level reference cannot have other properties then "$ref".',
-                       \json_encode($shorthand)
-                   ));
+                    throw InvalidShorthand::refWithOtherProperties($shorthand);
                 }
 
                 if (! \is_string($shorthandDefinition)) {
-                    throw new LogicException(\sprintf(
-                        'Detected a top level shorthand reference using a "$ref" property, but the value of the property is not a string.',
-                    ));
+                    throw InvalidShorthand::refNotString($shorthand);
                 }
 
                 $shorthandDefinition = \str_replace('#/definitions/', '', $shorthandDefinition);
@@ -63,17 +55,11 @@ final class Shorthand
                 ];
             } elseif ($schemaProperty === '$items') {
                 if (\count($shorthand) > 1) {
-                    throw new LogicException(\sprintf(
-                        'Shorthand %s contains a top level array property "$items", but it is not the only property!
-                       \nA top level array cannot have other properties then "$items".',
-                        \json_encode($shorthand)
-                    ));
+                    throw InvalidShorthand::itemsWithOtherProperties($shorthand);
                 }
 
                 if (! \is_string($shorthandDefinition)) {
-                    throw new LogicException(\sprintf(
-                        'Detected a top level shorthand array using an "$items" property, but the value of the property is not a string.',
-                    ));
+                    throw InvalidShorthand::itemsNotString($shorthand);
                 }
 
                 if (\mb_substr($shorthandDefinition, -2) !== '[]') {
@@ -93,10 +79,7 @@ final class Shorthand
             } elseif (\is_string($shorthandDefinition)) {
                 $schema['properties'][$schemaProperty] = self::convertShorthandStringToJsonSchema($shorthandDefinition);
             } else {
-                throw new LogicException(\sprintf(
-                    'I tried to parse JSONSchema for property: "%s", but it is neither a string nor an object.',
-                    $schemaProperty
-                ));
+                throw InvalidShorthand::cannotParseProperty($schemaProperty, $shorthand);
             }
         }
 
@@ -120,7 +103,7 @@ final class Shorthand
         }
 
         if (\mb_substr($parts[0], -2) === '[]') {
-            $itemsParts = [\mb_substr($parts[0], 0, \mb_strlen($parts[0]) - 2)];
+            $itemsParts = [\mb_substr($parts[0], 0, -2)];
             \array_push($itemsParts, ...\array_slice($parts, 1));
 
             return [
