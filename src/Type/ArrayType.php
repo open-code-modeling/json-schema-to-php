@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace OpenCodeModeling\JsonSchemaToPhp\Type;
 
-final class ArrayType implements TypeDefinition
+final class ArrayType implements TypeDefinition, TitleAware
 {
     use PopulateRequired;
 
@@ -36,6 +36,7 @@ final class ArrayType implements TypeDefinition
     protected ?string $name = null;
     protected bool $isRequired = false;
     protected bool $nullable = false;
+    protected ?string $title = null;
 
     private function __construct()
     {
@@ -229,6 +230,16 @@ final class ArrayType implements TypeDefinition
     public function additionalItems(): ?TypeSet
     {
         return $this->additionalItems;
+    }
+
+    public function title(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(string $title): void
+    {
+        $this->title = $title;
     }
 
     public static function type(): string

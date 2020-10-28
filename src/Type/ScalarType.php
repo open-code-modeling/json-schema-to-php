@@ -10,12 +10,13 @@ declare(strict_types=1);
 
 namespace OpenCodeModeling\JsonSchemaToPhp\Type;
 
-abstract class ScalarType implements TypeDefinition, RequiredAware, NullableAware
+abstract class ScalarType implements TypeDefinition, RequiredAware, NullableAware, TitleAware
 {
     protected ?string $format = null;
     protected ?string $name = null;
     protected bool $isRequired = false;
     protected bool $nullable = false;
+    protected ?string $title = null;
 
     /**
      * @var mixed
@@ -145,5 +146,15 @@ abstract class ScalarType implements TypeDefinition, RequiredAware, NullableAwar
     public function setIsRequired(bool $required): void
     {
         $this->isRequired = $required;
+    }
+
+    public function title(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(string $title): void
+    {
+        $this->title = $title;
     }
 }

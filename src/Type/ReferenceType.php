@@ -10,13 +10,14 @@ declare(strict_types=1);
 
 namespace OpenCodeModeling\JsonSchemaToPhp\Type;
 
-final class ReferenceType implements TypeDefinition, RequiredAware, NullableAware
+final class ReferenceType implements TypeDefinition, RequiredAware, NullableAware, TitleAware
 {
     protected ?TypeSet $resolvedType = null;
     protected ?string $name = null;
     protected ?string $ref = null;
     protected bool $isRequired = false;
     protected bool $nullable = false;
+    protected ?string $title = null;
 
     private function __construct()
     {
@@ -108,5 +109,15 @@ final class ReferenceType implements TypeDefinition, RequiredAware, NullableAwar
             }
         }
         $this->nullable = $nullable;
+    }
+
+    public function title(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(string $title): void
+    {
+        $this->title = $title;
     }
 }
