@@ -89,7 +89,11 @@ final class ObjectType implements TypeDefinition, NullableAware, RequiredAware, 
                                 $self->properties[$propertyName] = Type::fromDefinition($propertyDefinition, $propertyName);
                             } elseif (isset($propertyDefinition['$ref'])) {
                                 $ref = ReferenceType::fromDefinition($propertyDefinition, '');
-                                $ref->setResolvedType($resolveReference($propertyDefinition['$ref']));
+
+                                if ($resolvedType = $resolveReference($propertyDefinition['$ref'])) {
+                                    $ref->setResolvedType($resolvedType);
+                                }
+
                                 $self->properties[$propertyName] = new TypeSet($ref);
                             }
                         }

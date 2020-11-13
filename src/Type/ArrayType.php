@@ -76,7 +76,7 @@ final class ArrayType implements TypeDefinition, TitleAware
         };
 
         $populateArrayType = static function (string $key, array $definitionValue) use ($resolveReference, $self) {
-            if (isset($definitionValue['type'])) {
+            if (isset($definitionValue['type']) || isset($definitionValue['$ref'])) {
                 $self->$key[] = Type::fromDefinition($definitionValue, '');
 
                 return;
@@ -86,7 +86,11 @@ final class ArrayType implements TypeDefinition, TitleAware
                     $self->$key[] = Type::fromDefinition($propertyDefinition, '');
                 } elseif (isset($propertyDefinition['$ref'])) {
                     $ref = ReferenceType::fromDefinition($propertyDefinition, '');
-                    $ref->setResolvedType($resolveReference($propertyDefinition['$ref']));
+
+                    if ($resolvedType = $resolveReference($propertyDefinition['$ref'])) {
+                        $ref->setResolvedType($resolveReference($propertyDefinition['$ref']));
+                    }
+
                     $self->$key[] = new TypeSet($ref);
                 }
             }

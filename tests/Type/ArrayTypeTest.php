@@ -42,6 +42,56 @@ final class ArrayTypeTest extends TestCase
         $this->assertItemFour($items[3]);
     }
 
+    /**
+     * @test
+     */
+    public function it_supports_array_with_one_type(): void
+    {
+        $json = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'schema_with_array_one_type.json');
+        $decodedJson = \json_decode($json, true, 512, \JSON_BIGINT_AS_STRING | \JSON_THROW_ON_ERROR);
+
+        $typeSet = Type::fromDefinition($decodedJson);
+
+        $this->assertCount(1, $typeSet);
+
+        /** @var ArrayType $type */
+        $type = $typeSet->first();
+
+        $this->assertInstanceOf(ArrayType::class, $type);
+
+        $items = $type->items();
+        $this->assertCount(1, $items);
+
+        $this->assertItemOne($items[0]);
+    }
+
+    /**
+     * @test
+     */
+    public function it_supports_array_shorthand_with_no_ref(): void
+    {
+        $json = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'schema_with_array_shorthand_no_ref.json');
+        $decodedJson = \json_decode($json, true, 512, \JSON_BIGINT_AS_STRING | \JSON_THROW_ON_ERROR);
+
+        $typeSet = Type::fromShorthand($decodedJson);
+
+        $this->assertCount(1, $typeSet);
+
+        /** @var ArrayType $type */
+        $type = $typeSet->first();
+
+        $this->assertInstanceOf(ArrayType::class, $type);
+
+        $items = $type->items();
+        $this->assertCount(1, $items);
+
+        /** @var ReferenceType $item */
+        $item = $items[0]->first();
+
+        $this->assertInstanceOf(ReferenceType::class, $item);
+        $this->assertNull($item->resolvedType());
+    }
+
     private function assertItemOne(TypeSet $itemOne): void
     {
         $this->assertCount(1, $itemOne);
