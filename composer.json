@@ -48,6 +48,7 @@
     "scripts": {
         "check": [
             "@cs",
+            "@analyse",
             "@test"
         ],
         "cs": "php-cs-fixer fix src -v --diff --dry-run",
