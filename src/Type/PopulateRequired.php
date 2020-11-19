@@ -27,6 +27,10 @@ trait PopulateRequired
             switch (true) {
                 case \is_scalar($this->$key):
                     break;
+                case $this instanceof ObjectType && ! isset($this->properties[$requiredName]):
+                    $this->properties[$requiredName] = new TypeSet(MixedType::fromDefinition([], $requiredName));
+                    $this->properties[$requiredName]->setIsRequired(true);
+                    break;
                 case $this->$key[$requiredName] instanceof RequiredAware:
                     $this->$key[$requiredName]->setIsRequired(true);
                     break;
