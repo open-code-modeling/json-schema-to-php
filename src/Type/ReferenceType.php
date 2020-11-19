@@ -93,9 +93,11 @@ final class ReferenceType implements TypeDefinition, RequiredAware, NullableAwar
 
     public function setIsRequired(bool $required): void
     {
-        foreach ($this->resolvedType as $type) {
-            if ($type instanceof RequiredAware) {
-                $type->setIsRequired($required);
+        if ($this->resolvedType !== null) {
+            foreach ($this->resolvedType as $type) {
+                if ($type instanceof RequiredAware) {
+                    $type->setIsRequired($required);
+                }
             }
         }
         $this->isRequired = $required;
@@ -103,9 +105,11 @@ final class ReferenceType implements TypeDefinition, RequiredAware, NullableAwar
 
     public function setNullable(bool $nullable): void
     {
-        foreach ($this->resolvedType as $type) {
-            if ($type instanceof NullableAware) {
-                $type->setNullable($nullable);
+        if ($this->resolvedType !== null) {
+            foreach ($this->resolvedType as $type) {
+                if ($type instanceof NullableAware) {
+                    $type->setNullable($nullable);
+                }
             }
         }
         $this->nullable = $nullable;
