@@ -83,34 +83,36 @@ final class ObjectType implements TypeDefinition, NullableAware, RequiredAware, 
 
         foreach ($definition as $definitionKey => $definitionValue) {
             switch ($definitionKey) {
-                    case 'properties':
-                        foreach ($definitionValue as $propertyName => $propertyDefinition) {
-                            if (isset($propertyDefinition['type'])) {
-                                $self->properties[$propertyName] = Type::fromDefinition($propertyDefinition, $propertyName);
-                            } elseif (isset($propertyDefinition['$ref'])) {
-                                $ref = ReferenceType::fromDefinition($propertyDefinition, '');
+                case 'properties':
+                    foreach ($definitionValue as $propertyName => $propertyDefinition) {
+                        if (isset($propertyDefinition['$ref'])) {
+                            $ref = ReferenceType::fromDefinition($propertyDefinition, '');
 
-                                if ($resolvedType = $resolveReference($propertyDefinition['$ref'])) {
-                                    $ref->setResolvedType($resolvedType);
-                                }
-
-                                $self->properties[$propertyName] = new TypeSet($ref);
+                            if ($resolvedType = $resolveReference($propertyDefinition['$ref'])) {
+                                $ref->setResolvedType($resolvedType);
                             }
+                            $self->properties[$propertyName] = new TypeSet($ref);
+                        } else {
+                            $self->properties[$propertyName] = Type::fromDefinition(
+                                $propertyDefinition,
+                                $propertyName
+                            );
                         }
-                        break;
-                    case 'additionalProperties':
-                        $self->additionalProperties = \is_array($definitionValue)
-                            ? Type::fromDefinition($definitionValue, '')
-                            : $definitionValue;
-                        break;
-                    case 'definitions':
-                        // handled beforehand
-                        break;
-                    default:
-                        if (\property_exists($self, $definitionKey)) {
-                            $self->$definitionKey = $definitionValue;
-                        }
-                        break;
+                    }
+                    break;
+                case 'additionalProperties':
+                    $self->additionalProperties = \is_array($definitionValue)
+                        ? Type::fromDefinition($definitionValue, '')
+                        : $definitionValue;
+                    break;
+                case 'definitions':
+                    // handled beforehand
+                    break;
+                default:
+                    if (\property_exists($self, $definitionKey)) {
+                        $self->$definitionKey = $definitionValue;
+                    }
+                    break;
             }
         }
 

@@ -82,9 +82,7 @@ final class ArrayType implements TypeDefinition, TitleAware
                 return;
             }
             foreach ($definitionValue as $propertyDefinition) {
-                if (isset($propertyDefinition['type'])) {
-                    $self->$key[] = Type::fromDefinition($propertyDefinition, '');
-                } elseif (isset($propertyDefinition['$ref'])) {
+                if (isset($propertyDefinition['$ref'])) {
                     $ref = ReferenceType::fromDefinition($propertyDefinition, '');
 
                     if ($resolvedType = $resolveReference($propertyDefinition['$ref'])) {
@@ -92,6 +90,13 @@ final class ArrayType implements TypeDefinition, TitleAware
                     }
 
                     $self->$key[] = new TypeSet($ref);
+                } else {
+                    $self->$key[] = Type::fromDefinition(
+                        isset($propertyDefinition[0])
+                            ? $definitionValue
+                            : $propertyDefinition,
+                        ''
+                    );
                 }
             }
         };

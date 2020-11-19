@@ -10,6 +10,9 @@ declare(strict_types=1);
 
 namespace OpenCodeModeling\JsonSchemaToPhp\Type;
 
+/**
+ * @internal
+ */
 abstract class ScalarType implements TypeDefinition, RequiredAware, NullableAware, TitleAware
 {
     protected ?string $format = null;
