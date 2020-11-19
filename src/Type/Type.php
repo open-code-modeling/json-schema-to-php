@@ -32,11 +32,35 @@ final class Type
     public static function fromDefinition(array $definition, ?string $name = null): TypeSet
     {
         if (! isset($definition['type'])) {
-            if (isset($definition['$ref'])) {
-                return new TypeSet(ReferenceType::fromDefinition($definition, $name));
+            switch (true) {
+                case isset($definition['$ref']):
+                    return new TypeSet(ReferenceType::fromDefinition($definition, $name));
+                case isset($definition['anyOf']):
+                    $definition['type'] = AnyOfType::type();
+                    break;
+                case isset($definition['oneOf']):
+                    $definition['type'] = OneOfType::type();
+                    break;
+                case isset($definition['allOf']):
+                    $definition['type'] = AllOfType::type();
+                    break;
+                case isset($definition['not']):
+                    $definition['type'] = NotType::type();
+                    break;
+                case isset($definition['const']):
+                    $definition['type'] = ConstType::type();
+                    break;
+                case isset($definition['patternProperties'])
+                    || isset($definition['properties'])
+                    || isset($definition['additionalProperties'])
+                    || isset($definition['required']):
+                    $definition['type'] = ObjectType::type();
+                    break;
+                case \count($definition) === 0:
+                    return new TypeSet(MixedType::fromDefinition($definition, $name));
+                default:
+                    throw new \RuntimeException(\sprintf('The "type" is missing in schema definition for "%s"', $name));
             }
-
-            throw new \RuntimeException(\sprintf('The "type" is missing in schema definition for "%s"', $name));
         }
 
         $definitionTypes = (array) $definition['type'];
@@ -67,6 +91,21 @@ final class Type
                 case 'array':
                     $types[] = ArrayType::fromDefinition($definition, $name);
                     break;
+                case 'oneOf':
+                    $types[] = OneOfType::fromDefinition($definition, $name);
+                    break;
+                case 'anyOf':
+                    $types[] = AnyOfType::fromDefinition($definition, $name);
+                    break;
+                case 'allOf':
+                    $types[] = AllOfType::fromDefinition($definition, $name);
+                    break;
+                case 'not':
+                    $types[] = NotType::fromDefinition($definition, $name);
+                    break;
+                case 'const':
+                    $types[] = ConstType::fromDefinition($definition, $name);
+                    break;
                 case 'null':
                 case 'Null':
                 case 'NULL':
@@ -84,7 +123,9 @@ final class Type
         }
 
         foreach ($types as $type) {
-            $type->setNullable($isNullable);
+            if ($type instanceof NullableAware) {
+                $type->setNullable($isNullable);
+            }
         }
 
         return new TypeSet(...$types);
