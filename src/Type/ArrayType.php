@@ -76,28 +76,38 @@ final class ArrayType implements TypeDefinition, TitleAware
         };
 
         $populateArrayType = static function (string $key, array $definitionValue) use ($resolveReference, $self) {
-            if (isset($definitionValue['type']) || isset($definitionValue['$ref'])) {
-                $self->$key[] = Type::fromDefinition($definitionValue, '');
+            switch (true) {
+                case isset($definitionValue['type']):
+                    $self->$key[] = Type::fromDefinition($definitionValue, '');
+                    break;
+                case isset($definitionValue['$ref']):
+                    $ref = ReferenceType::fromDefinition($definitionValue, '');
 
-                return;
-            }
-            foreach ($definitionValue as $propertyDefinition) {
-                if (isset($propertyDefinition['$ref'])) {
-                    $ref = ReferenceType::fromDefinition($propertyDefinition, '');
-
-                    if ($resolvedType = $resolveReference($propertyDefinition['$ref'])) {
-                        $ref->setResolvedType($resolveReference($propertyDefinition['$ref']));
+                    if ($resolvedType = $resolveReference($definitionValue['$ref'])) {
+                        $ref->setResolvedType($resolveReference($definitionValue['$ref']));
                     }
-
                     $self->$key[] = new TypeSet($ref);
-                } else {
-                    $self->$key[] = Type::fromDefinition(
-                        isset($propertyDefinition[0])
-                            ? $definitionValue
-                            : $propertyDefinition,
-                        ''
-                    );
-                }
+                    break;
+                default:
+                    foreach ($definitionValue as $propertyDefinition) {
+                        if (isset($propertyDefinition['$ref'])) {
+                            $ref = ReferenceType::fromDefinition($propertyDefinition, '');
+
+                            if ($resolvedType = $resolveReference($propertyDefinition['$ref'])) {
+                                $ref->setResolvedType($resolveReference($propertyDefinition['$ref']));
+                            }
+
+                            $self->$key[] = new TypeSet($ref);
+                        } else {
+                            $self->$key[] = Type::fromDefinition(
+                                isset($propertyDefinition[0])
+                                    ? $definitionValue
+                                    : $propertyDefinition,
+                                ''
+                            );
+                        }
+                    }
+                    break;
             }
         };
 

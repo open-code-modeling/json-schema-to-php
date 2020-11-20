@@ -1,0 +1,15 @@
+{
+    "type": "array",
+    "items": {
+        "$ref": "#/definitions/name"
+    },
+    "definitions": {
+        "name": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "minLength": 2
+        }
+    }
+}
