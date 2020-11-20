@@ -34,7 +34,7 @@ abstract class ScalarType implements TypeDefinition, RequiredAware, NullableAwar
     /**
      * @var ?array<string>
      */
-    protected ?array $enum;
+    protected ?array $enum = null;
 
     final private function __construct()
     {
