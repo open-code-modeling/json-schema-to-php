@@ -40,11 +40,17 @@ final class NotType implements TypeDefinition
         $this->name = $name;
     }
 
-    public static function fromDefinition(array $definition, ?string $name = null): self
+    /**
+     * @param array<string, mixed> $definition
+     * @param string|null $name
+     * @param array<string, TypeSet> $rootDefinitions
+     * @return static
+     */
+    public static function fromDefinition(array $definition, ?string $name = null, array $rootDefinitions = []): self
     {
         $self = new static();
         $self->name = $name;
-        $self->typeSet = Type::fromDefinition($definition['not']);
+        $self->typeSet = Type::fromDefinition($definition['not'], null, $rootDefinitions);
 
         return $self;
     }

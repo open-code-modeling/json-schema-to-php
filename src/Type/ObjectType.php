@@ -48,7 +48,13 @@ final class ObjectType implements TypeDefinition, NullableAware, RequiredAware, 
     {
     }
 
-    public static function fromDefinition(array $definition, ?string $name = null): self
+    /**
+     * @param array<string, mixed> $definition
+     * @param string|null $name
+     * @param array<string, TypeSet> $rootDefinitions
+     * @return static
+     */
+    public static function fromDefinition(array $definition, ?string $name = null, array $rootDefinitions = []): self
     {
         if (! isset($definition['type'])) {
             throw new \RuntimeException(\sprintf('The "type" is missing in schema definition for "%s"', $name));
@@ -67,16 +73,20 @@ final class ObjectType implements TypeDefinition, NullableAware, RequiredAware, 
 
         if (isset($definition['definitions'])) {
             foreach ($definition['definitions'] as $propertyName => $propertyDefinition) {
-                $self->definitions[$propertyName] = Type::fromDefinition($propertyDefinition, $propertyName);
+                $self->definitions[$propertyName] = Type::fromDefinition($propertyDefinition, $propertyName, $rootDefinitions);
             }
         }
 
         // definitions can be shared and must be cloned to not override defaults e. g. required
-        $resolveReference = static function (string $ref) use ($self) {
+        $resolveReference = static function (string $ref) use ($self, $rootDefinitions) {
             $referencePath = \explode('/', $ref);
             $name = \array_pop($referencePath);
 
             $resolvedType = $self->definitions[$name] ?? null;
+
+            if ($resolvedType === null) {
+                $resolvedType = $rootDefinitions[$name] ?? null;
+            }
 
             return $resolvedType ? clone $resolvedType : null;
         };
@@ -95,14 +105,15 @@ final class ObjectType implements TypeDefinition, NullableAware, RequiredAware, 
                         } else {
                             $self->properties[$propertyName] = Type::fromDefinition(
                                 $propertyDefinition,
-                                $propertyName
+                                $propertyName,
+                                $self->definitions
                             );
                         }
                     }
                     break;
                 case 'additionalProperties':
                     $self->additionalProperties = \is_array($definitionValue)
-                        ? Type::fromDefinition($definitionValue, '')
+                        ? Type::fromDefinition($definitionValue, '', $self->definitions)
                         : $definitionValue;
                     break;
                 case 'definitions':

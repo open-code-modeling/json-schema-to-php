@@ -27,9 +27,10 @@ final class Type
     /**
      * @param array<string, mixed> $definition
      * @param string|null $name
+     * @param array<string, TypeSet> $rootDefinitions
      * @return TypeSet
      */
-    public static function fromDefinition(array $definition, ?string $name = null): TypeSet
+    public static function fromDefinition(array $definition, ?string $name = null, array $rootDefinitions = []): TypeSet
     {
         if (! isset($definition['type'])) {
             switch (true) {
@@ -86,22 +87,22 @@ final class Type
                     $types[] = BooleanType::fromDefinition($definition, $name);
                     break;
                 case 'object':
-                    $types[] = ObjectType::fromDefinition($definition, $name);
+                    $types[] = ObjectType::fromDefinition($definition, $name, $rootDefinitions);
                     break;
                 case 'array':
-                    $types[] = ArrayType::fromDefinition($definition, $name);
+                    $types[] = ArrayType::fromDefinition($definition, $name, $rootDefinitions);
                     break;
                 case 'oneOf':
-                    $types[] = OneOfType::fromDefinition($definition, $name);
+                    $types[] = OneOfType::fromDefinition($definition, $name, $rootDefinitions);
                     break;
                 case 'anyOf':
-                    $types[] = AnyOfType::fromDefinition($definition, $name);
+                    $types[] = AnyOfType::fromDefinition($definition, $name, $rootDefinitions);
                     break;
                 case 'allOf':
-                    $types[] = AllOfType::fromDefinition($definition, $name);
+                    $types[] = AllOfType::fromDefinition($definition, $name, $rootDefinitions);
                     break;
                 case 'not':
-                    $types[] = NotType::fromDefinition($definition, $name);
+                    $types[] = NotType::fromDefinition($definition, $name, $rootDefinitions);
                     break;
                 case 'const':
                     $types[] = ConstType::fromDefinition($definition, $name);
@@ -122,12 +123,89 @@ final class Type
             throw new \RuntimeException('Could not determine type of JSON schema');
         }
 
+        $typeSet = new TypeSet(...$types);
+
         foreach ($types as $type) {
             if ($type instanceof NullableAware) {
                 $type->setNullable($isNullable);
             }
         }
 
-        return new TypeSet(...$types);
+        self::populateReferences($typeSet);
+
+        return $typeSet;
+    }
+
+    /**
+     * @param TypeSet $typeSet
+     * @param array<string, TypeSet> $rootDefinitions
+     */
+    private static function populateReferences(TypeSet $typeSet, array $rootDefinitions = []): void
+    {
+        foreach ($typeSet as $typeDefinition) {
+            switch (true) {
+                case $typeDefinition instanceof ObjectType:
+                    foreach ($typeDefinition->definitions() as $property) {
+                        self::populateReferences($property, $typeDefinition->definitions());
+                    }
+                    foreach ($typeDefinition->properties() as $property) {
+                        if (\count($typeDefinition->definitions()) > 0) {
+                            self::populateReferences($property, $typeDefinition->definitions());
+                        }
+                        if (\count($rootDefinitions) > 0) {
+                            self::populateReferences($property, $rootDefinitions);
+                        }
+                    }
+                    $additionalProperties = $typeDefinition->additionalProperties();
+
+                    if ($additionalProperties instanceof TypeSet) {
+                        if (\count($typeDefinition->definitions()) > 0) {
+                            self::populateReferences($additionalProperties, $typeDefinition->definitions());
+                        }
+                        if (\count($rootDefinitions) > 0) {
+                            self::populateReferences($additionalProperties, $rootDefinitions);
+                        }
+                    }
+                    break;
+                case $typeDefinition instanceof ArrayType:
+                    foreach ($typeDefinition->definitions() as $property) {
+                        self::populateReferences($property, $typeDefinition->definitions());
+                    }
+                    foreach ($typeDefinition->items() as $item) {
+                        if (\count($typeDefinition->definitions()) > 0) {
+                            self::populateReferences($item, $typeDefinition->definitions());
+                        }
+                        if (\count($rootDefinitions) > 0) {
+                            self::populateReferences($item, $rootDefinitions);
+                        }
+                    }
+                    break;
+                case $typeDefinition instanceof NotType:
+                    if (\count($rootDefinitions) > 0) {
+                        self::populateReferences($typeDefinition->getTypeSet(), $rootDefinitions);
+                    }
+                    break;
+                case $typeDefinition instanceof OfType:
+                    foreach ($typeDefinition->getTypeSets() as $item) {
+                        if (\count($rootDefinitions) > 0) {
+                            self::populateReferences($item, $rootDefinitions);
+                        }
+                    }
+                    break;
+                case $typeDefinition instanceof ReferenceType:
+                    $referencePath = \explode('/', $typeDefinition->ref());
+                    $name = \array_pop($referencePath);
+
+                    $resolvedType = $rootDefinitions[$name] ?? null;
+
+                    if ($resolvedType !== null) {
+                        $typeDefinition->setResolvedType(clone $resolvedType);
+                        $typeDefinition->setIsRequired($typeDefinition->isRequired());
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 }

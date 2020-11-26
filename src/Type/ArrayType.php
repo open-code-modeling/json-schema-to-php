@@ -42,7 +42,13 @@ final class ArrayType implements TypeDefinition, TitleAware
     {
     }
 
-    public static function fromDefinition(array $definition, ?string $name = null): self
+    /**
+     * @param array<string, mixed> $definition
+     * @param string|null $name
+     * @param array<string, TypeSet> $rootDefinitions
+     * @return static
+     */
+    public static function fromDefinition(array $definition, ?string $name = null, array $rootDefinitions = []): self
     {
         if (! isset($definition['type']) && ! isset($definition['$ref'])) {
             throw new \RuntimeException(\sprintf('The "type" is missing in schema definition for "%s"', $name));
@@ -61,16 +67,20 @@ final class ArrayType implements TypeDefinition, TitleAware
 
         if (isset($definition['definitions'])) {
             foreach ($definition['definitions'] as $propertyName => $propertyDefinition) {
-                $self->definitions[$propertyName] = Type::fromDefinition($propertyDefinition, $propertyName);
+                $self->definitions[$propertyName] = Type::fromDefinition($propertyDefinition, $propertyName, $rootDefinitions);
             }
         }
 
         // definitions can be shared and must be cloned to not override defaults e. g. required
-        $resolveReference = static function (string $ref) use ($self) {
+        $resolveReference = static function (string $ref) use ($self, $rootDefinitions) {
             $referencePath = \explode('/', $ref);
             $name = \array_pop($referencePath);
 
             $resolvedType = $self->definitions[$name] ?? null;
+
+            if ($resolvedType === null) {
+                $resolvedType = $rootDefinitions[$name] ?? null;
+            }
 
             return $resolvedType ? clone $resolvedType : null;
         };
@@ -78,7 +88,7 @@ final class ArrayType implements TypeDefinition, TitleAware
         $populateArrayType = static function (string $key, array $definitionValue) use ($resolveReference, $self) {
             switch (true) {
                 case isset($definitionValue['type']):
-                    $self->$key[] = Type::fromDefinition($definitionValue, '');
+                    $self->$key[] = Type::fromDefinition($definitionValue, '', $self->definitions());
                     break;
                 case isset($definitionValue['$ref']):
                     $ref = ReferenceType::fromDefinition($definitionValue, '');
@@ -103,7 +113,8 @@ final class ArrayType implements TypeDefinition, TitleAware
                                 isset($propertyDefinition[0])
                                     ? $definitionValue
                                     : $propertyDefinition,
-                                ''
+                                '',
+                                $self->definitions()
                             );
                         }
                     }
@@ -120,7 +131,7 @@ final class ArrayType implements TypeDefinition, TitleAware
                     $populateArrayType('contains', $definitionValue);
                     break;
                 case 'additionalItems':
-                    $self->additionalItems = Type::fromDefinition($definitionValue, '');
+                    $self->additionalItems = Type::fromDefinition($definitionValue, '', $self->definitions());
                     break;
                 case 'definitions':
                     // handled beforehand

@@ -46,7 +46,13 @@ abstract class OfType implements TypeDefinition
         $this->name = $name;
     }
 
-    public static function fromDefinition(array $definition, ?string $name = null): self
+    /**
+     * @param array<string, mixed> $definition
+     * @param string|null $name
+     * @param array<string, TypeSet> $rootDefinitions
+     * @return static
+     */
+    public static function fromDefinition(array $definition, ?string $name = null, array $rootDefinitions = []): self
     {
         $self = new static();
         $self->name = $name;
@@ -54,7 +60,7 @@ abstract class OfType implements TypeDefinition
         $type = $definition['type'] ?: static::type();
 
         foreach ($definition[$type] as $typeDefinition) {
-            $self->typeSets[] = Type::fromDefinition($typeDefinition);
+            $self->typeSets[] = Type::fromDefinition($typeDefinition, null, $rootDefinitions);
         }
 
         return $self;

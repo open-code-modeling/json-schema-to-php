@@ -6,6 +6,7 @@ namespace OpenCodeModelingTest\JsonSchemaToPhp\Type;
 
 use OpenCodeModeling\JsonSchemaToPhp\Type\ArrayType;
 use OpenCodeModeling\JsonSchemaToPhp\Type\NumberType;
+use OpenCodeModeling\JsonSchemaToPhp\Type\ObjectType;
 use OpenCodeModeling\JsonSchemaToPhp\Type\ReferenceType;
 use OpenCodeModeling\JsonSchemaToPhp\Type\StringType;
 use OpenCodeModeling\JsonSchemaToPhp\Type\Type;
@@ -85,7 +86,15 @@ final class ArrayTypeTest extends TestCase
         $items = $type->items();
         $this->assertCount(1, $items);
 
-        $this->assertItemThree($items[0]);
+        /** @var ReferenceType $itemThreeType */
+        $itemThreeType = $items[0]->first();
+        $this->assertInstanceOf(ReferenceType::class, $itemThreeType);
+        $this->assertCount(1, $itemThreeType->resolvedType());
+
+        /** @var StringType $resolvedType */
+        $resolvedType = $itemThreeType->resolvedType()->first();
+
+        $this->assertSame(2, $resolvedType->minLength());
     }
 
     /**
@@ -135,17 +144,44 @@ final class ArrayTypeTest extends TestCase
 
     private function assertItemThree(TypeSet $itemThree): void
     {
-        $this->assertCount(1, $itemThree);
+        /** @var ReferenceType $address */
+        $address = $itemThree->first();
+        $this->assertInstanceOf(ReferenceType::class, $address);
+        $this->assertCount(1, $address->resolvedType());
 
-        /** @var ReferenceType $itemThreeType */
-        $itemThreeType = $itemThree->first();
-        $this->assertInstanceOf(ReferenceType::class, $itemThreeType);
-        $this->assertCount(1, $itemThreeType->resolvedType());
+        /** @var ObjectType $resolvedType */
+        $resolvedType = $address->resolvedType()->first();
+        $this->assertInstanceOf(ObjectType::class, $resolvedType);
 
-        /** @var StringType $resolvedType */
-        $resolvedType = $itemThreeType->resolvedType()->first();
+        $this->assertFalse($address->isRequired());
+        $this->assertFalse($resolvedType->isRequired());
+        $this->assertFalse($resolvedType->isNullable());
 
-        $this->assertSame(2, $resolvedType->minLength());
+        $properties = $resolvedType->properties();
+        $this->assertArrayHasKey('street_address', $properties);
+        $this->assertArrayHasKey('city', $properties);
+        $this->assertArrayHasKey('state', $properties);
+
+        $stateTypeSet = $properties['state'];
+        $this->assertCount(1, $stateTypeSet);
+
+        /** @var ReferenceType $state */
+        $state = $stateTypeSet->first();
+        $this->assertInstanceOf(ReferenceType::class, $state);
+        $this->assertTrue($state->isRequired());
+        $this->assertFalse($state->isNullable());
+
+        $resolvedTypeSet = $state->resolvedType();
+        $this->assertCount(1, $resolvedTypeSet);
+
+        /** @var StringType $state */
+        $state = $resolvedTypeSet->first();
+        $this->assertInstanceOf(StringType::class, $state);
+        $this->assertTrue($state->isRequired());
+        $this->assertFalse($state->isNullable());
+        $this->assertCount(2, $state->enum());
+        $this->assertContains('NY', $state->enum());
+        $this->assertContains('DC', $state->enum());
     }
 
     private function assertItemFour(TypeSet $itemFour): void
@@ -157,4 +193,5 @@ final class ArrayTypeTest extends TestCase
         $this->assertCount(4, $itemFourType->enum());
 
     }
+
 }

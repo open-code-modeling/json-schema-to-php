@@ -8,7 +8,7 @@
             "type": "string"
         },
         {
-            "$ref": "#/definitions/name"
+            "$ref": "#/definitions/address"
         },
         {
             "type": "string",
@@ -19,12 +19,29 @@
     "maxItems": 3,
     "uniqueItems": true,
     "definitions": {
-        "name": {
-            "type": [
-                "string",
-                "null"
-            ],
-            "minLength": 2
+        "address": {
+            "type": "object",
+            "properties": {
+                "street_address": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "state": {
+                    "$ref": "#/definitions/state"
+                }
+
+            },
+            "required": [
+                "street_address",
+                "city",
+                "state"
+            ]
+        },
+        "state": {
+            "type": "string",
+            "enum": ["NY", "DC"]
         }
     },
     "additionalItems": {

@@ -11,15 +11,19 @@
                     "type": "string"
                 },
                 "state": {
-                    "type": "string",
-                    "enum": ["NY", "DC"]
+                    "$ref": "#/definitions/state"
                 }
+
             },
             "required": [
                 "street_address",
                 "city",
                 "state"
             ]
+        },
+        "state": {
+            "type": "string",
+            "enum": ["NY", "DC"]
         }
     },
     "type": "object",

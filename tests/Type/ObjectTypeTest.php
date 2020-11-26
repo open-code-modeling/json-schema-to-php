@@ -132,8 +132,9 @@ final class ObjectTypeTest extends TestCase
     private function assertObjectsDefinitions(ObjectType $type): void
     {
         $definitions = $type->definitions();
-        $this->assertCount(1, $definitions);
+        $this->assertCount(2, $definitions);
         $this->assertArrayHasKey('address', $definitions);
+        $this->assertArrayHasKey('state', $definitions);
 
         /** @var TypeSet $addressTypeSet */
         $addressTypeSet = $definitions['address'];
@@ -143,6 +144,18 @@ final class ObjectTypeTest extends TestCase
         $address = $addressTypeSet->first();
         $this->assertFalse($address->isRequired());
         $this->assertFalse($address->isNullable());
+
+        $stateTypeSet = $definitions['state'];
+        $this->assertCount(1, $stateTypeSet);
+
+        /** @var StringType $state */
+        $state = $stateTypeSet->first();
+        $this->assertInstanceOf(StringType::class, $state);
+        $this->assertFalse($state->isRequired());
+        $this->assertFalse($state->isNullable());
+        $this->assertCount(2, $state->enum());
+        $this->assertContains('NY', $state->enum());
+        $this->assertContains('DC', $state->enum());
     }
 
     private function assertAddressObject(ReferenceType $address, bool $required): void
@@ -162,13 +175,23 @@ final class ObjectTypeTest extends TestCase
         $this->assertArrayHasKey('city', $properties);
         $this->assertArrayHasKey('state', $properties);
 
-        /** @var TypeSet $stateTypeSet */
         $stateTypeSet = $properties['state'];
         $this->assertCount(1, $stateTypeSet);
 
-        /** @var StringType $state */
+        /** @var ReferenceType $state */
         $state = $stateTypeSet->first();
+        $this->assertInstanceOf(ReferenceType::class, $state);
+        $this->assertTrue($state->isRequired());
+        $this->assertFalse($state->isNullable());
+
+        $resolvedTypeSet = $state->resolvedType();
+        $this->assertCount(1, $resolvedTypeSet);
+
+        /** @var StringType $state */
+        $state = $resolvedTypeSet->first();
         $this->assertInstanceOf(StringType::class, $state);
+        $this->assertTrue($state->isRequired());
+        $this->assertFalse($state->isNullable());
         $this->assertCount(2, $state->enum());
         $this->assertContains('NY', $state->enum());
         $this->assertContains('DC', $state->enum());

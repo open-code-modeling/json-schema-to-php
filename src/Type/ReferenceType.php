@@ -34,6 +34,7 @@ final class ReferenceType implements TypeDefinition, RequiredAware, NullableAwar
 
         $self = new static();
         $self->setName($name);
+        $self->ref = $definition['$ref'];
 
         foreach ($definition as $definitionKey => $definitionValue) {
             if (\property_exists($self, $definitionKey)) {
