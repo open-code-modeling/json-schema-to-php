@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace OpenCodeModeling\JsonSchemaToPhp\Type;
 
+use OpenCodeModeling\JsonSchemaToPhp\Exception\RuntimeException;
 use OpenCodeModeling\JsonSchemaToPhp\Shorthand\Shorthand;
 
 final class Type
@@ -57,10 +58,38 @@ final class Type
                     || isset($definition['required']):
                     $definition['type'] = ObjectType::type();
                     break;
+                case isset($definition['enum']):
+                    $enumType = '';
+
+                    foreach ($definition['enum'] as $enumvalue) {
+                        $previousType = \gettype($enumvalue);
+
+                        if ($enumType !== '' && $previousType !== $enumType) {
+                            throw new RuntimeException('Mixed enum types not supported');
+                        }
+                        $enumType = $previousType;
+                    }
+                    switch ($enumType) {
+                        case 'array':
+                        case 'string':
+                        case 'integer':
+                        case 'boolean':
+                            break;
+                        case 'float':
+                        case 'double':
+                            $enumType = 'number';
+                            break;
+                        default:
+                            throw new RuntimeException(
+                                \sprintf('The type "%s" is not supported in schema definition for "%s"', $enumType, $name)
+                            );
+                    }
+                    $definition['type'] = $enumType;
+                    break;
                 case \count($definition) === 0:
                     return new TypeSet(MixedType::fromDefinition($definition, $name));
                 default:
-                    throw new \RuntimeException(\sprintf('The "type" is missing in schema definition for "%s"', $name));
+                    throw new RuntimeException(\sprintf('The "type" is missing in schema definition for "%s"', $name));
             }
         }
 
@@ -113,14 +142,14 @@ final class Type
                     $isNullable = true;
                     break;
                 default:
-                    throw new \RuntimeException(
+                    throw new RuntimeException(
                         \sprintf('JSON schema type "%s" is not implemented', $definition['type'])
                     );
             }
         }
 
         if (\count($types) === 0) {
-            throw new \RuntimeException('Could not determine type of JSON schema');
+            throw new RuntimeException('Could not determine type of JSON schema');
         }
 
         $typeSet = new TypeSet(...$types);
