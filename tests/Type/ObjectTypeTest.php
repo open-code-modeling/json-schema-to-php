@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * @see       https://github.com/open-code-modeling/json-schema-to-php for the canonical source repository
+ * @copyright https://github.com/open-code-modeling/json-schema-to-php/blob/master/COPYRIGHT.md
+ * @license   https://github.com/open-code-modeling/json-schema-to-php/blob/master/LICENSE.md MIT License
+ */
+
 declare(strict_types=1);
 
 namespace OpenCodeModelingTest\JsonSchemaToPhp\Type;
@@ -18,7 +24,7 @@ final class ObjectTypeTest extends TestCase
      */
     public function it_supports_object_type(): void
     {
-        $json = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'schema_with_object.json');
+        $json = \file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'schema_with_object.json');
         $decodedJson = \json_decode($json, true, 512, \JSON_BIGINT_AS_STRING | \JSON_THROW_ON_ERROR);
 
         $typeSet = Type::fromDefinition($decodedJson);
@@ -79,7 +85,7 @@ final class ObjectTypeTest extends TestCase
      */
     public function it_supports_definition_of_objects(): void
     {
-        $json = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'schema_with_objects.json');
+        $json = \file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'schema_with_objects.json');
         $decodedJson = \json_decode($json, true, 512, \JSON_BIGINT_AS_STRING | \JSON_THROW_ON_ERROR);
 
         $typeSet = Type::fromDefinition($decodedJson);

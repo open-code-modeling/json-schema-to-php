@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * @see       https://github.com/open-code-modeling/json-schema-to-php for the canonical source repository
+ * @copyright https://github.com/open-code-modeling/json-schema-to-php/blob/master/COPYRIGHT.md
+ * @license   https://github.com/open-code-modeling/json-schema-to-php/blob/master/LICENSE.md MIT License
+ */
+
 declare(strict_types=1);
 
 namespace OpenCodeModelingTest\JsonSchemaToPhp\Type;
@@ -20,7 +26,7 @@ final class ArrayTypeTest extends TestCase
      */
     public function it_supports_array_type(): void
     {
-        $json = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'schema_with_array.json');
+        $json = \file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'schema_with_array.json');
         $decodedJson = \json_decode($json, true, 512, \JSON_BIGINT_AS_STRING | \JSON_THROW_ON_ERROR);
 
         $typeSet = Type::fromDefinition($decodedJson);
@@ -48,7 +54,7 @@ final class ArrayTypeTest extends TestCase
      */
     public function it_supports_array_with_one_type(): void
     {
-        $json = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'schema_with_array_one_type.json');
+        $json = \file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'schema_with_array_one_type.json');
         $decodedJson = \json_decode($json, true, 512, \JSON_BIGINT_AS_STRING | \JSON_THROW_ON_ERROR);
 
         $typeSet = Type::fromDefinition($decodedJson);
@@ -71,7 +77,7 @@ final class ArrayTypeTest extends TestCase
      */
     public function it_supports_array_with_one_type_ref(): void
     {
-        $json = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'schema_with_array_one_type_ref.json');
+        $json = \file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'schema_with_array_one_type_ref.json');
         $decodedJson = \json_decode($json, true, 512, \JSON_BIGINT_AS_STRING | \JSON_THROW_ON_ERROR);
 
         $typeSet = Type::fromDefinition($decodedJson);
@@ -102,7 +108,7 @@ final class ArrayTypeTest extends TestCase
      */
     public function it_supports_array_shorthand_with_no_ref(): void
     {
-        $json = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'schema_with_array_shorthand_no_ref.json');
+        $json = \file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'schema_with_array_shorthand_no_ref.json');
         $decodedJson = \json_decode($json, true, 512, \JSON_BIGINT_AS_STRING | \JSON_THROW_ON_ERROR);
 
         $typeSet = Type::fromShorthand($decodedJson);
@@ -191,7 +197,5 @@ final class ArrayTypeTest extends TestCase
         $itemFourType = $itemFour->first();
         $this->assertInstanceOf(StringType::class, $itemFourType);
         $this->assertCount(4, $itemFourType->enum());
-
     }
-
 }

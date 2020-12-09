@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * @see       https://github.com/open-code-modeling/json-schema-to-php for the canonical source repository
+ * @copyright https://github.com/open-code-modeling/json-schema-to-php/blob/master/COPYRIGHT.md
+ * @license   https://github.com/open-code-modeling/json-schema-to-php/blob/master/LICENSE.md MIT License
+ */
+
 declare(strict_types=1);
 
 namespace OpenCodeModelingTest\JsonSchemaToPhp\Shorthand;
@@ -31,7 +38,7 @@ final class ShorthandTest extends TestCase
         $schema = Shorthand::convertToJsonSchema(['test' => 'enum|available|blocked|bought']);
 
         $this->assertEquals($this->jsonSchemaObject(
-            ['test' => ['enum' => ["available", "blocked", "bought"]]],
+            ['test' => ['enum' => ['available', 'blocked', 'bought']]],
             ['test']
         ), $schema);
     }
@@ -117,7 +124,7 @@ final class ShorthandTest extends TestCase
             'test2' => 'number|minimum:0.5|maximum:10',
             'test3' => 'string|null|format:email',
             'test4' => 'boolean|default:false',
-            'test5' => 'boolean|null|default:true'
+            'test5' => 'boolean|null|default:true',
         ]);
 
         $this->assertEquals($this->jsonSchemaObject(
@@ -178,7 +185,7 @@ final class ShorthandTest extends TestCase
             'searchProfile?' => [
                 'roomsMin' => 'number|null|minimum:0.5',
                 'roomsMax' => 'number|null|minimum:0.5',
-            ]
+            ],
         ]);
 
         $this->assertEquals(
@@ -194,7 +201,7 @@ final class ShorthandTest extends TestCase
                 'searchProfile' => $this->jsonSchemaObject([
                     'roomsMin' => ['type' => ['number', 'null'], 'minimum' => 0.5],
                     'roomsMax' => ['type' => ['number', 'null'], 'minimum' => 0.5],
-                ], ['roomsMin', 'roomsMax'])
+                ], ['roomsMin', 'roomsMax']),
             ], ['name', 'email', 'address', 'tags'], 'Prospect'),
             $schema
         );
@@ -212,10 +219,10 @@ final class ShorthandTest extends TestCase
             'type' => 'object',
             'properties' => $properties,
             'additionalProperties' => false,
-            'required' => $required
+            'required' => $required,
         ];
 
-        if($title) {
+        if ($title) {
             $obj['title'] = $title;
         }
 
