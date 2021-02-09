@@ -17,9 +17,10 @@ final class Shorthand
 {
     /**
      * @param array<string, mixed> $shorthand
+     * @param string|null $namespace
      * @return array<string, mixed>
      */
-    public static function convertToJsonSchema(array $shorthand): array
+    public static function convertToJsonSchema(array $shorthand, ?string $namespace = null): array
     {
         $schema = [
             'type' => 'object',
@@ -29,6 +30,10 @@ final class Shorthand
             'required' => [],
             'additionalProperties' => false,
         ];
+
+        if ($namespace !== null) {
+            $schema['namespace'] = $namespace;
+        }
 
         foreach ($shorthand as $property => $shorthandDefinition) {
             if (! \is_string($property) || empty($property)) {
@@ -100,10 +105,6 @@ final class Shorthand
 
         $parts = \explode('|', $shorthandStr);
 
-        if ($parts[0] === 'enum') {
-            return ['enum' => \array_slice($parts, 1)];
-        }
-
         if (\mb_substr($parts[0], -2) === '[]') {
             $itemsParts = [\mb_substr($parts[0], 0, -2)];
             \array_push($itemsParts, ...\array_slice($parts, 1));
@@ -114,37 +115,61 @@ final class Shorthand
             ];
         }
 
-        switch ($parts[0]) {
-            case 'string':
-            case 'integer':
-            case 'number':
-            case 'boolean':
+        switch (true) {
+            case \mb_strpos($parts[0], 'string') === 0:
+            case \mb_strpos($parts[0], 'integer') === 0:
+            case \mb_strpos($parts[0], 'number') === 0:
+            case \mb_strpos($parts[0], 'boolean') === 0:
+            case \mb_strpos($parts[0], 'enum:') === 0:
                 $type = $parts[0];
+                $typeKey = 'type';
+                $typeValue = $type;
+
+                if (\mb_strpos($parts[0], 'enum:') === 0) {
+                    $typeValue = \explode(',', \mb_substr($parts[0], 5));
+                    $typeKey = 'enum';
+                }
 
                 if (isset($parts[1]) && $parts[1] === 'null') {
-                    $type = [$type, 'null'];
+                    $typeValue = [$type, 'null'];
 
                     \array_splice($parts, 1, 1);
                 }
 
-                $schema = ['type' => $type];
-
-                if (\count($parts) > 1) {
-                    $parts = \array_slice($parts, 1);
-
-                    foreach ($parts as $part) {
-                        [$validationKey, $validationValue] = self::parseShorthandValidation($part);
-
-                        $schema[$validationKey] = $validationValue;
-                    }
-                }
+                $schema = self::populateSchema($parts);
+                $schema[$typeKey] = $typeValue;
 
                 return $schema;
             default:
-                return [
-                    '$ref' => '#/definitions/'.$parts[0],
-                ];
+                $type = $parts[0];
+
+                $schema = self::populateSchema($parts);
+
+                $schema['$ref'] = '#/definitions/'.$type;
+
+                return $schema;
         }
+    }
+
+    /**
+     * @param array<int, mixed> $parts
+     * @return array<string, mixed>
+     */
+    private static function populateSchema(array $parts): array
+    {
+        $schema = [];
+
+        if (\count($parts) > 1) {
+            $parts = \array_slice($parts, 1);
+
+            foreach ($parts as $part) {
+                [$validationKey, $validationValue] = self::parseShorthandValidation($part);
+
+                $schema[$validationKey] = $validationValue;
+            }
+        }
+
+        return $schema;
     }
 
     /**

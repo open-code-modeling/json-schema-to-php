@@ -35,7 +35,7 @@ final class ShorthandTest extends TestCase
      */
     public function it_converts_enum_shorthand_to_json_schema_string(): void
     {
-        $schema = Shorthand::convertToJsonSchema(['test' => 'enum|available|blocked|bought']);
+        $schema = Shorthand::convertToJsonSchema(['test' => 'enum:available,blocked,bought']);
 
         $this->assertEquals($this->jsonSchemaObject(
             ['test' => ['enum' => ['available', 'blocked', 'bought']]],

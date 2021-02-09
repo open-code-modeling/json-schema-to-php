@@ -43,7 +43,7 @@ final class TypeTest extends TestCase
      */
     public function it_supports_string_enums_without_type(): void
     {
-        $typeSet = Type::fromShorthand(['contentLanguage' => 'enum|de-DE|en-US'], 'Content');
+        $typeSet = Type::fromShorthand(['contentLanguage' => 'enum:de-DE,en-US'], 'Content');
 
         $this->assertCount(1, $typeSet);
 
