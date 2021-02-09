@@ -2,13 +2,15 @@
     "type": "array",
     "items": [
         {
-            "type": "number"
+            "type": "number",
+            "namespace": "Scalar"
         },
         {
             "type": "string"
         },
         {
-            "$ref": "#/definitions/address"
+            "$ref": "#/definitions/address",
+            "namespace": "Address"
         },
         {
             "type": "string",
@@ -23,13 +25,16 @@
             "type": "object",
             "properties": {
                 "street_address": {
-                    "type": "string"
+                    "type": "string",
+                    "namespace": "Address"
                 },
                 "city": {
-                    "type": "string"
+                    "type": "string",
+                    "namespace": "Address"
                 },
                 "state": {
-                    "$ref": "#/definitions/state"
+                    "$ref": "#/definitions/state",
+                    "namespace": "Address"
                 }
 
             },

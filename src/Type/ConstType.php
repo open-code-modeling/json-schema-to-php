@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace OpenCodeModeling\JsonSchemaToPhp\Type;
 
-class ConstType implements TypeDefinition
+final class ConstType implements TypeDefinition
 {
     private ?string $name = null;
 
@@ -18,10 +18,6 @@ class ConstType implements TypeDefinition
      * @var mixed
      */
     private $value;
-
-    final private function __construct()
-    {
-    }
 
     public function isNullable(): bool
     {

@@ -18,9 +18,10 @@ final class Type
     /**
      * @param array<string, mixed> $shorthand
      * @param string|null $name
+     * @param string|null $namespace
      * @return TypeSet
      */
-    public static function fromShorthand(array $shorthand, ?string $name = null): TypeSet
+    public static function fromShorthand(array $shorthand, ?string $name = null, ?string $namespace = null): TypeSet
     {
         return self::fromDefinition(Shorthand::convertToJsonSchema($shorthand), $name);
     }

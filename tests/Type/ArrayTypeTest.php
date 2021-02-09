@@ -137,6 +137,7 @@ final class ArrayTypeTest extends TestCase
         /** @var NumberType $itemOneType */
         $itemOneType = $itemOne->first();
         $this->assertInstanceOf(NumberType::class, $itemOneType);
+        $this->assertSame(['namespace' => 'Scalar'], $itemOneType->custom());
     }
 
     private function assertItemTwo(TypeSet $itemTwo): void
@@ -154,6 +155,7 @@ final class ArrayTypeTest extends TestCase
         $address = $itemThree->first();
         $this->assertInstanceOf(ReferenceType::class, $address);
         $this->assertCount(1, $address->resolvedType());
+        $this->assertSame(['namespace' => 'Address'], $address->custom());
 
         /** @var ObjectType $resolvedType */
         $resolvedType = $address->resolvedType()->first();
@@ -176,6 +178,7 @@ final class ArrayTypeTest extends TestCase
         $this->assertInstanceOf(ReferenceType::class, $state);
         $this->assertTrue($state->isRequired());
         $this->assertFalse($state->isNullable());
+        $this->assertSame(['namespace' => 'Address'], $state->custom());
 
         $resolvedTypeSet = $state->resolvedType();
         $this->assertCount(1, $resolvedTypeSet);

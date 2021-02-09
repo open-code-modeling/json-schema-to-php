@@ -10,17 +10,10 @@ declare(strict_types=1);
 
 namespace OpenCodeModeling\JsonSchemaToPhp\Type;
 
-/**
- * @internal
- */
-class MixedType implements TypeDefinition, RequiredAware
+final class MixedType implements TypeDefinition, RequiredAware
 {
     private ?string $name = null;
     protected bool $isRequired = false;
-
-    final private function __construct()
-    {
-    }
 
     public function isNullable(): bool
     {

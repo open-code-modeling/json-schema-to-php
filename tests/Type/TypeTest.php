@@ -24,7 +24,10 @@ final class TypeTest extends TestCase
      */
     public function it_supports_shorthand_definition(): void
     {
-        $typeSet = Type::fromShorthand(['name' => 'string|minLength:1', '$title' => 'Person'], 'Person');
+        $typeSet = Type::fromShorthand(
+            ['name' => 'string|minLength:1|namespace:Order\\Address', '$title' => 'Person'],
+            'Person'
+        );
 
         $this->assertCount(1, $typeSet);
 
@@ -36,6 +39,12 @@ final class TypeTest extends TestCase
         $this->assertArrayHasKey('name', $properties);
         $this->assertEquals('Person', $type->name());
         $this->assertEquals('Person', $type->title());
+
+        $nameTypeSet = $properties['name'];
+
+        /** @var StringType $name */
+        $name = $nameTypeSet->first();
+        $this->assertSame(['namespace' => 'Order\\Address'], $name->custom());
     }
 
     /**

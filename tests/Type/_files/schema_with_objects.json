@@ -5,13 +5,16 @@
             "type": "object",
             "properties": {
                 "street_address": {
-                    "type": "string"
+                    "type": "string",
+                    "namespace": "Address"
                 },
                 "city": {
-                    "type": "string"
+                    "type": "string",
+                    "namespace": "Address"
                 },
                 "state": {
-                    "$ref": "#/definitions/state"
+                    "$ref": "#/definitions/state",
+                    "namespace": "Address"
                 }
 
             },
@@ -19,7 +22,8 @@
                 "street_address",
                 "city",
                 "state"
-            ]
+            ],
+            "namespace": "Address"
         },
         "state": {
             "type": "string",
@@ -29,10 +33,12 @@
     "type": "object",
     "properties": {
         "billing_address": {
-            "$ref": "#/definitions/address"
+            "$ref": "#/definitions/address",
+            "namespace": "Order"
         },
         "shipping_address": {
-            "$ref": "#/definitions/address"
+            "$ref": "#/definitions/address",
+            "namespace": "Order"
         }
     },
     "required": [

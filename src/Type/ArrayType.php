@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace OpenCodeModeling\JsonSchemaToPhp\Type;
 
-final class ArrayType implements TypeDefinition, TitleAware
+final class ArrayType implements TypeDefinition, TitleAware, CustomSupport
 {
     use PopulateRequired;
 
@@ -37,6 +37,11 @@ final class ArrayType implements TypeDefinition, TitleAware
     protected bool $isRequired = false;
     protected bool $nullable = false;
     protected ?string $title = null;
+
+    /**
+     * @var array<string, mixed>
+     */
+    protected array $custom = [];
 
     private function __construct()
     {
@@ -134,11 +139,14 @@ final class ArrayType implements TypeDefinition, TitleAware
                     $self->additionalItems = Type::fromDefinition($definitionValue, '', $self->definitions());
                     break;
                 case 'definitions':
+                case 'type':
                     // handled beforehand
                     break;
                 default:
                     if (\property_exists($self, $definitionKey)) {
                         $self->$definitionKey = $definitionValue;
+                    } else {
+                        $self->custom[$definitionKey] = $definitionValue;
                     }
                     break;
             }
@@ -275,5 +283,15 @@ final class ArrayType implements TypeDefinition, TitleAware
     public static function type(): string
     {
         return self::TYPE_ARRAY;
+    }
+
+    /**
+     * Returns custom definitions
+     *
+     * @return array<string, mixed>
+     */
+    public function custom(): array
+    {
+        return $this->custom;
     }
 }

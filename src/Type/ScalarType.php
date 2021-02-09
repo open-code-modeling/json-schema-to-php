@@ -13,13 +13,18 @@ namespace OpenCodeModeling\JsonSchemaToPhp\Type;
 /**
  * @internal
  */
-abstract class ScalarType implements TypeDefinition, RequiredAware, NullableAware, TitleAware
+abstract class ScalarType implements TypeDefinition, RequiredAware, NullableAware, TitleAware, CustomSupport
 {
     protected ?string $format = null;
     protected ?string $name = null;
     protected bool $isRequired = false;
     protected bool $nullable = false;
     protected ?string $title = null;
+
+    /**
+     * @var array<string, mixed>
+     */
+    protected array $custom = [];
 
     /**
      * @var mixed
@@ -60,6 +65,8 @@ abstract class ScalarType implements TypeDefinition, RequiredAware, NullableAwar
         foreach ($definition as $definitionKey => $definitionValue) {
             if (\property_exists($self, $definitionKey)) {
                 $self->$definitionKey = $definitionValue;
+            } elseif ($definitionKey !== 'type') {
+                $self->custom[$definitionKey] = $definitionValue;
             }
         }
 
@@ -159,5 +166,15 @@ abstract class ScalarType implements TypeDefinition, RequiredAware, NullableAwar
     public function setTitle(string $title): void
     {
         $this->title = $title;
+    }
+
+    /**
+     * Returns custom definitions
+     *
+     * @return array<string, mixed>
+     */
+    public function custom(): array
+    {
+        return $this->custom;
     }
 }

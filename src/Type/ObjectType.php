@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace OpenCodeModeling\JsonSchemaToPhp\Type;
 
-final class ObjectType implements TypeDefinition, NullableAware, RequiredAware, TitleAware
+final class ObjectType implements TypeDefinition, NullableAware, RequiredAware, TitleAware, CustomSupport
 {
     use PopulateRequired;
 
@@ -43,6 +43,11 @@ final class ObjectType implements TypeDefinition, NullableAware, RequiredAware, 
      * @var array<string, TypeSet>
      */
     protected array $definitions = [];
+
+    /**
+     * @var array<string, mixed>
+     */
+    protected array $custom = [];
 
     private function __construct()
     {
@@ -117,11 +122,14 @@ final class ObjectType implements TypeDefinition, NullableAware, RequiredAware, 
                         : $definitionValue;
                     break;
                 case 'definitions':
+                case 'type':
                     // handled beforehand
                     break;
                 default:
                     if (\property_exists($self, $definitionKey)) {
                         $self->$definitionKey = $definitionValue;
+                    } else {
+                        $self->custom[$definitionKey] = $definitionValue;
                     }
                     break;
             }
@@ -216,5 +224,15 @@ final class ObjectType implements TypeDefinition, NullableAware, RequiredAware, 
     public function definitions(): array
     {
         return $this->definitions;
+    }
+
+    /**
+     * Returns custom definitions
+     *
+     * @return array<string, mixed>
+     */
+    public function custom(): array
+    {
+        return $this->custom;
     }
 }

@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace OpenCodeModelingTest\JsonSchemaToPhp\Type;
 
+use OpenCodeModeling\JsonSchemaToPhp\Type\ArrayType;
 use OpenCodeModeling\JsonSchemaToPhp\Type\ObjectType;
 use OpenCodeModeling\JsonSchemaToPhp\Type\ReferenceType;
 use OpenCodeModeling\JsonSchemaToPhp\Type\StringType;
@@ -83,6 +84,65 @@ final class ObjectTypeTest extends TestCase
     /**
      * @test
      */
+    public function it_supports_definition_of_objects_shorthand(): void
+    {
+        $json = \file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'schema_with_objects_shorthand.json');
+        $decodedJson = \json_decode($json, true, 512, \JSON_BIGINT_AS_STRING | \JSON_THROW_ON_ERROR);
+
+        $typeSet = Type::fromShorthand($decodedJson);
+
+        $this->assertCount(1, $typeSet);
+
+        /** @var ObjectType $type */
+        $type = $typeSet->first();
+        $this->assertInstanceOf(ObjectType::class, $type);
+        $this->assertFalse($type->additionalProperties());
+
+        $required = $type->required();
+        $this->assertCount(4, $required);
+        $this->assertContains('uuid', $required);
+        $this->assertContains('salutation', $required);
+        $this->assertContains('billing_address', $required);
+        $this->assertContains('shipping_address', $required);
+
+        $properties = $type->properties();
+        $this->assertCount(4, $properties);
+        $this->assertArrayHasKey('uuid', $properties);
+        $this->assertArrayHasKey('salutation', $properties);
+        $this->assertArrayHasKey('shipping_address', $properties);
+        $this->assertArrayHasKey('shipping_address', $properties);
+
+        /** @var StringType $uuid */
+        $uuid = $properties['uuid']->first();
+        $this->assertInstanceOf(StringType::class, $uuid);
+        $this->assertSame('uuid', $uuid->format());
+        $this->assertSame([], $uuid->custom());
+
+        /** @var StringType $salutation */
+        $salutation = $properties['salutation']->first();
+        $this->assertInstanceOf(StringType::class, $salutation);
+        $this->assertSame(['MR', 'MRS'], $salutation->enum());
+        $this->assertSame(['namespace' => 'Contact'], $salutation->custom());
+
+        /** @var ReferenceType $billingAddress */
+        $billingAddress = $properties['billing_address']->first();
+        $this->assertInstanceOf(ReferenceType::class, $billingAddress);
+        $this->assertSame(['namespace' => 'Order'], $billingAddress->custom());
+
+        /** @var ArrayType $shippingAddress */
+        $shippingAddress = $properties['shipping_address']->first();
+        $this->assertInstanceOf(ArrayType::class, $shippingAddress);
+        $this->assertSame([], $shippingAddress->custom());
+
+        /** @var ReferenceType $address */
+        $address = $shippingAddress->items()[0]->first();
+        $this->assertInstanceOf(ReferenceType::class, $address);
+        $this->assertSame(['namespace' => 'Order'], $address->custom());
+    }
+
+    /**
+     * @test
+     */
     public function it_supports_definition_of_objects(): void
     {
         $json = \file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'schema_with_objects.json');
@@ -122,6 +182,7 @@ final class ObjectTypeTest extends TestCase
 
         $this->assertInstanceOf(ReferenceType::class, $billingAddress);
         $this->assertAddressObject($billingAddress, true);
+        $this->assertSame(['namespace' => 'Order'], $billingAddress->custom());
 
         /** @var TypeSet $shippingAddressTypeSet */
         $shippingAddressTypeSet = $properties['shipping_address'];
@@ -133,6 +194,7 @@ final class ObjectTypeTest extends TestCase
 
         $this->assertInstanceOf(ReferenceType::class, $shippingAddress);
         $this->assertAddressObject($shippingAddress, false);
+        $this->assertSame(['namespace' => 'Order'], $shippingAddress->custom());
     }
 
     private function assertObjectsDefinitions(ObjectType $type): void
@@ -171,6 +233,7 @@ final class ObjectTypeTest extends TestCase
         /** @var ObjectType $resolvedType */
         $resolvedType = $address->resolvedType()->first();
         $this->assertInstanceOf(ObjectType::class, $resolvedType);
+        $this->assertSame(['namespace' => 'Address'], $resolvedType->custom());
 
         $this->assertSame($required, $address->isRequired());
         $this->assertSame($required, $resolvedType->isRequired());
@@ -189,6 +252,7 @@ final class ObjectTypeTest extends TestCase
         $this->assertInstanceOf(ReferenceType::class, $state);
         $this->assertTrue($state->isRequired());
         $this->assertFalse($state->isNullable());
+        $this->assertSame(['namespace' => 'Address'], $state->custom());
 
         $resolvedTypeSet = $state->resolvedType();
         $this->assertCount(1, $resolvedTypeSet);
@@ -201,5 +265,15 @@ final class ObjectTypeTest extends TestCase
         $this->assertCount(2, $state->enum());
         $this->assertContains('NY', $state->enum());
         $this->assertContains('DC', $state->enum());
+
+        $streetAddressTypeSet = $properties['street_address'];
+        $this->assertCount(1, $streetAddressTypeSet);
+
+        /** @var StringType $streetAddress */
+        $streetAddress = $streetAddressTypeSet->first();
+        $this->assertInstanceOf(StringType::class, $streetAddress);
+        $this->assertSame('street_address', $streetAddress->name());
+
+        $this->assertSame(['namespace' => 'Address'], $streetAddress->custom());
     }
 }

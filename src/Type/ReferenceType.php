@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace OpenCodeModeling\JsonSchemaToPhp\Type;
 
-final class ReferenceType implements TypeDefinition, RequiredAware, NullableAware, TitleAware
+final class ReferenceType implements TypeDefinition, RequiredAware, NullableAware, TitleAware, CustomSupport
 {
     protected ?TypeSet $resolvedType = null;
     protected ?string $name = null;
@@ -18,6 +18,11 @@ final class ReferenceType implements TypeDefinition, RequiredAware, NullableAwar
     protected bool $isRequired = false;
     protected bool $nullable = false;
     protected ?string $title = null;
+
+    /**
+     * @var array<string, mixed>
+     */
+    protected array $custom = [];
 
     private function __construct()
     {
@@ -39,6 +44,8 @@ final class ReferenceType implements TypeDefinition, RequiredAware, NullableAwar
         foreach ($definition as $definitionKey => $definitionValue) {
             if (\property_exists($self, $definitionKey)) {
                 $self->$definitionKey = $definitionValue;
+            } elseif ($definitionKey !== '$ref') {
+                $self->custom[$definitionKey] = $definitionValue;
             }
         }
 
@@ -124,5 +131,15 @@ final class ReferenceType implements TypeDefinition, RequiredAware, NullableAwar
     public function setTitle(string $title): void
     {
         $this->title = $title;
+    }
+
+    /**
+     * Returns custom definitions
+     *
+     * @return array<string, mixed>
+     */
+    public function custom(): array
+    {
+        return $this->custom;
     }
 }
