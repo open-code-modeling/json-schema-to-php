@@ -20,6 +20,16 @@ final class ShorthandTest extends TestCase
     /**
      * @test
      */
+    public function it_converts_shorthand_from_string(): void
+    {
+        $schema = Shorthand::convertToJsonSchema('string|format:uuid|namespace:MyService');
+
+        $this->assertEquals(['type' => 'string', 'format' => 'uuid', 'namespace' => 'MyService'], $schema);
+    }
+
+    /**
+     * @test
+     */
     public function it_converts_empty_shorthand_string_to_json_schema_string(): void
     {
         $schema = Shorthand::convertToJsonSchema(['test' => '']);

@@ -84,6 +84,17 @@ final class ReferenceType implements TypeDefinition, RequiredAware, NullableAwar
         return $this;
     }
 
+    public function extractNameFromReference(): ?string
+    {
+        if ($this->ref === null) {
+            return null;
+        }
+
+        $referencePath = \explode('/', $this->ref);
+
+        return \array_pop($referencePath);
+    }
+
     public static function type(): string
     {
         return self::TYPE_REF;

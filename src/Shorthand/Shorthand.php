@@ -15,25 +15,32 @@ use OpenCodeModeling\JsonSchemaToPhp\Exception\LogicException;
 
 final class Shorthand
 {
+    private const STRING_NAME = '__this_is_my_temporary_property__';
+
     /**
-     * @param array<string, mixed> $shorthand
-     * @param string|null $namespace
+     * @param string|array<string, mixed> $shorthand
+     * @param array<string, mixed> $customData
      * @return array<string, mixed>
      */
-    public static function convertToJsonSchema(array $shorthand, ?string $namespace = null): array
+    public static function convertToJsonSchema($shorthand, array $customData = []): array
     {
-        $schema = [
-            'type' => 'object',
-            'properties' => [
+        $isString = \is_string($shorthand);
 
-            ],
-            'required' => [],
-            'additionalProperties' => false,
-        ];
-
-        if ($namespace !== null) {
-            $schema['namespace'] = $namespace;
+        if ($isString === true) {
+            $shorthand = [self::STRING_NAME => $shorthand];
         }
+
+        $schema = \array_merge(
+            $customData,
+            [
+                'type' => 'object',
+                'properties' => [
+
+                ],
+                'required' => [],
+                'additionalProperties' => false,
+            ]
+        );
 
         foreach ($shorthand as $property => $shorthandDefinition) {
             if (! \is_string($property) || empty($property)) {
@@ -88,6 +95,10 @@ final class Shorthand
             } else {
                 throw InvalidShorthand::cannotParseProperty($schemaProperty, $shorthand);
             }
+        }
+
+        if ($isString === true) {
+            return \array_merge($customData, $schema['properties'][self::STRING_NAME]);
         }
 
         return $schema;
