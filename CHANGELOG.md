@@ -3,27 +3,26 @@
 All notable changes to this project will be documented in this file, in reverse chronological order by release.
 
 
-## 0.3.0 - TBD
+## 0.3.0 - 2021-02-11
 
-### Added
 
-- Nothing.
+-----
 
-### Changed
+### Release Notes for [0.3.0](https://github.com/open-code-modeling/json-schema-to-php/milestone/6)
 
-- Nothing.
+Feature release (minor)
 
-### Deprecated
+### 0.3.0
 
-- Nothing.
+- Total issues resolved: **3**
+- Total pull requests resolved: **0**
+- Total contributors: **1**
 
-### Removed
+#### enhancement
 
-- Nothing.
-
-### Fixed
-
-- Nothing.
+ - [10: Allow shorthand string](https://github.com/open-code-modeling/json-schema-to-php/issues/10) thanks to @sandrokeil
+ - [9: Add support for arbitrary data in JSON schema](https://github.com/open-code-modeling/json-schema-to-php/issues/9) thanks to @sandrokeil
+ - [8: Improve shorthand syntax](https://github.com/open-code-modeling/json-schema-to-php/issues/8) thanks to @sandrokeil
 
 ## 0.2.1 - 2020-12-09
 
