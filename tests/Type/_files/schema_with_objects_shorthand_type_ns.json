@@ -1,0 +1,6 @@
+{
+    "uuid": "/string|format:uuid",
+    "salutation": "/Contact/enum:MR,MRS",
+    "billing_address": "Order/Address",
+    "shipping_address": "Order/Address[]"
+}

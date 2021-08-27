@@ -126,18 +126,26 @@ final class Shorthand
             ];
         }
 
+        $type = $parts[0];
+        $namespace = '';
+        $namespaceDetected = false !== \strpos($parts[0], '/');
+
+        if ($namespaceDetected) {
+            $namespace = self::extractNamespace($type);
+            $type = self::extractType($type);
+        }
+
         switch (true) {
-            case \mb_strpos($parts[0], 'string') === 0:
-            case \mb_strpos($parts[0], 'integer') === 0:
-            case \mb_strpos($parts[0], 'number') === 0:
-            case \mb_strpos($parts[0], 'boolean') === 0:
-            case \mb_strpos($parts[0], 'enum:') === 0:
-                $type = $parts[0];
+            case \mb_strpos($type, 'string') === 0:
+            case \mb_strpos($type, 'integer') === 0:
+            case \mb_strpos($type, 'number') === 0:
+            case \mb_strpos($type, 'boolean') === 0:
+            case \mb_strpos($type, 'enum:') === 0:
                 $typeKey = 'type';
                 $typeValue = $type;
 
-                if (\mb_strpos($parts[0], 'enum:') === 0) {
-                    $typeValue = \explode(',', \mb_substr($parts[0], 5));
+                if (\mb_strpos($type, 'enum:') === 0) {
+                    $typeValue = \explode(',', \mb_substr($type, 5));
                     $typeKey = 'enum';
                 }
 
@@ -150,13 +158,19 @@ final class Shorthand
                 $schema = self::populateSchema($parts);
                 $schema[$typeKey] = $typeValue;
 
+                if ($namespaceDetected) {
+                    $schema['namespace'] = \strlen($namespace) > 1 ? \rtrim($namespace, '/') : $namespace;
+                }
+
                 return $schema;
             default:
-                $type = $parts[0];
-
                 $schema = self::populateSchema($parts);
 
-                $schema['$ref'] = '#/definitions/'.$type;
+                $schema['$ref'] = '#/definitions/' . \ltrim($namespace, '/') . $type;
+
+                if ($namespaceDetected) {
+                    $schema['namespace'] = \strlen($namespace) > 1 ? \rtrim($namespace, '/') : $namespace;
+                }
 
                 return $schema;
         }
@@ -217,5 +231,15 @@ final class Shorthand
         }
 
         return [$validationKey, $value];
+    }
+
+    private static function extractType(string $type): string
+    {
+        return \trim(\substr($type, \strrpos($type, '/') + 1), '/');
+    }
+
+    private static function extractNamespace(string $type): string
+    {
+        return \substr($type, 0, \strrpos($type, '/') + 1);
     }
 }

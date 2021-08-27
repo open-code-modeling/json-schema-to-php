@@ -143,6 +143,65 @@ final class ObjectTypeTest extends TestCase
     /**
      * @test
      */
+    public function it_supports_definition_of_objects_shorthand_type_ns(): void
+    {
+        $json = \file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'schema_with_objects_shorthand_type_ns.json');
+        $decodedJson = \json_decode($json, true, 512, \JSON_BIGINT_AS_STRING | \JSON_THROW_ON_ERROR);
+
+        $typeSet = Type::fromShorthand($decodedJson);
+
+        $this->assertCount(1, $typeSet);
+
+        /** @var ObjectType $type */
+        $type = $typeSet->first();
+        $this->assertInstanceOf(ObjectType::class, $type);
+        $this->assertFalse($type->additionalProperties());
+
+        $required = $type->required();
+        $this->assertCount(4, $required);
+        $this->assertContains('uuid', $required);
+        $this->assertContains('salutation', $required);
+        $this->assertContains('billing_address', $required);
+        $this->assertContains('shipping_address', $required);
+
+        $properties = $type->properties();
+        $this->assertCount(4, $properties);
+        $this->assertArrayHasKey('uuid', $properties);
+        $this->assertArrayHasKey('salutation', $properties);
+        $this->assertArrayHasKey('shipping_address', $properties);
+        $this->assertArrayHasKey('shipping_address', $properties);
+
+        /** @var StringType $uuid */
+        $uuid = $properties['uuid']->first();
+        $this->assertInstanceOf(StringType::class, $uuid);
+        $this->assertSame('uuid', $uuid->format());
+        $this->assertSame(['namespace' => '/'], $uuid->custom());
+
+        /** @var StringType $salutation */
+        $salutation = $properties['salutation']->first();
+        $this->assertInstanceOf(StringType::class, $salutation);
+        $this->assertSame(['MR', 'MRS'], $salutation->enum());
+        $this->assertSame(['namespace' => '/Contact'], $salutation->custom());
+
+        /** @var ReferenceType $billingAddress */
+        $billingAddress = $properties['billing_address']->first();
+        $this->assertInstanceOf(ReferenceType::class, $billingAddress);
+        $this->assertSame(['namespace' => 'Order'], $billingAddress->custom());
+
+        /** @var ArrayType $shippingAddress */
+        $shippingAddress = $properties['shipping_address']->first();
+        $this->assertInstanceOf(ArrayType::class, $shippingAddress);
+        $this->assertSame([], $shippingAddress->custom());
+
+        /** @var ReferenceType $address */
+        $address = $shippingAddress->items()[0]->first();
+        $this->assertInstanceOf(ReferenceType::class, $address);
+        $this->assertSame(['namespace' => 'Order'], $address->custom());
+    }
+
+    /**
+     * @test
+     */
     public function it_supports_definition_of_objects(): void
     {
         $json = \file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'schema_with_objects.json');
