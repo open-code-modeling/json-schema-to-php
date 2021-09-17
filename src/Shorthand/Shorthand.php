@@ -79,7 +79,7 @@ final class Shorthand
                         $shorthandDefinition .= '[]';
                     }
 
-                    return self::convertShorthandStringToJsonSchema($shorthandDefinition);
+                    return self::convertShorthandStringToJsonSchema($shorthandDefinition, $customData);
                 case $schemaProperty === '$title':
                     $schema['title'] = $shorthandDefinition;
                     continue 2;
@@ -91,7 +91,7 @@ final class Shorthand
             if (\is_array($shorthandDefinition)) {
                 $schema['properties'][$schemaProperty] = self::convertToJsonSchema($shorthandDefinition);
             } elseif (\is_string($shorthandDefinition)) {
-                $schema['properties'][$schemaProperty] = self::convertShorthandStringToJsonSchema($shorthandDefinition);
+                $schema['properties'][$schemaProperty] = self::convertShorthandStringToJsonSchema($shorthandDefinition, $customData);
             } else {
                 throw InvalidShorthand::cannotParseProperty($schemaProperty, $shorthand);
             }
@@ -106,9 +106,10 @@ final class Shorthand
 
     /**
      * @param string $shorthandStr
+     * @param array<string, mixed> $customData
      * @return array<string, mixed>
      */
-    private static function convertShorthandStringToJsonSchema(string $shorthandStr): array
+    private static function convertShorthandStringToJsonSchema(string $shorthandStr, array $customData): array
     {
         if ($shorthandStr === '') {
             return ['type' => 'string'];
@@ -122,13 +123,17 @@ final class Shorthand
 
             return [
                 'type' => 'array',
-                'items' => self::convertShorthandStringToJsonSchema(\implode('|', $itemsParts)),
+                'items' => self::convertShorthandStringToJsonSchema(\implode('|', $itemsParts), $customData),
             ];
         }
 
         $type = $parts[0];
-        $namespace = '';
+        $namespace = $customData['voNamespace'] ?? '';
         $namespaceDetected = false !== \strpos($parts[0], '/');
+
+        if ($namespace !== '') {
+            $namespace = \rtrim($namespace, '/') . '/';
+        }
 
         if ($namespaceDetected) {
             $namespace = self::extractNamespace($type);
