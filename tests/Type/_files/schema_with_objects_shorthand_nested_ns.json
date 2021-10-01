@@ -1,0 +1,10 @@
+{
+    "order": {
+        "billing_address": "Address",
+        "payment_address": "Payment/string",
+        "shipping_address": "/Order/Address[]"
+    },
+    "salutation": "/Contact/enum:MR,MRS",
+    "name": "string",
+    "items": "Items[]"
+}

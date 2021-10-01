@@ -335,4 +335,92 @@ final class ObjectTypeTest extends TestCase
 
         $this->assertSame(['namespace' => 'Address'], $streetAddress->custom());
     }
+
+    /**
+     * @test
+     */
+    public function it_supports_definition_of_objects_shorthand_nested_ns(): void
+    {
+        $json = \file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'schema_with_objects_shorthand_nested_ns.json');
+        $decodedJson = \json_decode($json, true, 512, \JSON_BIGINT_AS_STRING | \JSON_THROW_ON_ERROR);
+
+        $typeSet = Type::fromShorthand($decodedJson, 'checkout', '/Order', '/Shipping');
+
+        $this->assertCount(1, $typeSet);
+
+        /** @var ObjectType $type */
+        $type = $typeSet->first();
+        $this->assertInstanceOf(ObjectType::class, $type);
+        $this->assertFalse($type->additionalProperties());
+
+        $required = $type->required();
+        $this->assertCount(4, $required);
+        $this->assertContains('order', $required);
+        $this->assertContains('salutation', $required);
+        $this->assertContains('name', $required);
+        $this->assertContains('items', $required);
+
+        $properties = $type->properties();
+        $this->assertCount(4, $properties);
+        $this->assertArrayHasKey('order', $properties);
+        $this->assertArrayHasKey('salutation', $properties);
+        $this->assertArrayHasKey('name', $properties);
+        $this->assertArrayHasKey('items', $properties);
+
+        /** @var ObjectType $order */
+        $order = $properties['order']->first();
+        $this->assertInstanceOf(ObjectType::class, $order);
+        // implicit object Order is in namespace /Shipping and value objects with no namespace also in /Shipping
+        $this->assertSame(['namespace' => '/Shipping', 'voNamespace' => '/Shipping'], $order->custom());
+
+        $subProperties = $order->properties();
+        $this->assertCount(3, $subProperties);
+        $this->assertArrayHasKey('billing_address', $subProperties);
+        $this->assertArrayHasKey('shipping_address', $subProperties);
+        $this->assertArrayHasKey('payment_address', $subProperties);
+
+        /** @var StringType $paymentAddress */
+        $paymentAddress = $subProperties['payment_address']->first();
+        $this->assertInstanceOf(StringType::class, $paymentAddress);
+        // value object defines it's own namespace
+        $this->assertSame(['namespace' => 'Payment'], $paymentAddress->custom());
+
+        /** @var ReferenceType $billingAddress */
+        $billingAddress = $subProperties['billing_address']->first();
+        $this->assertInstanceOf(ReferenceType::class, $billingAddress);
+        // reference value object use defined voNamespace because of missing namespace definition
+        $this->assertSame(['namespace' => '/Shipping'], $billingAddress->custom());
+        $this->assertSame('#/definitions/Shipping/Address', $billingAddress->ref());
+
+        /** @var ArrayType $shippingAddress */
+        $shippingAddress = $subProperties['shipping_address']->first();
+        $this->assertInstanceOf(ArrayType::class, $shippingAddress);
+        // implicit array value object uses defined voNamespace
+        $this->assertSame(['namespace' => '/Shipping'], $shippingAddress->custom());
+
+        /** @var ReferenceType $items */
+        $items = $shippingAddress->items()[0]->first();
+        $this->assertInstanceOf(ReferenceType::class, $items);
+        // item defines it's own namespace
+        $this->assertSame(['namespace' => '/Order'], $items->custom());
+        $this->assertSame('#/definitions/Order/Address', $items->ref());
+
+        /** @var StringType $salutation */
+        $salutation = $properties['salutation']->first();
+        $this->assertInstanceOf(StringType::class, $salutation);
+        $this->assertSame(['MR', 'MRS'], $salutation->enum());
+        $this->assertSame(['namespace' => '/Contact'], $salutation->custom());
+
+        /** @var StringType $name */
+        $name = $properties['name']->first();
+        $this->assertInstanceOf(StringType::class, $name);
+        // value objects with no namespace are in voNamespace /Shipping
+        $this->assertSame(['namespace' => '/Shipping'], $name->custom());
+
+        /** @var ArrayType $items */
+        $items = $properties['items']->first();
+        $this->assertInstanceOf(ArrayType::class, $items);
+        // implicit array value object uses defined voNamespace
+        $this->assertSame(['namespace' => '/Shipping'], $items->custom());
+    }
 }

@@ -17,13 +17,27 @@ final class Type
 {
     /**
      * @param array<string, mixed> $shorthand
-     * @param string|null $name
-     * @param string|null $namespace
+     * @param string|null $name Name
+     * @param string|null $namespace Namespace
+     * @param string|null $voNamespace Value object namespace e.g. for properties of type object
      * @return TypeSet
      */
-    public static function fromShorthand(array $shorthand, ?string $name = null, ?string $namespace = null): TypeSet
-    {
-        return self::fromDefinition(Shorthand::convertToJsonSchema($shorthand), $name);
+    public static function fromShorthand(
+        array $shorthand,
+        ?string $name = null,
+        ?string $namespace = null,
+        ?string $voNamespace = null
+    ): TypeSet {
+        $customData = [];
+
+        if ($namespace !== null) {
+            $customData['namespace'] = $namespace;
+        }
+        if ($voNamespace !== null) {
+            $customData['voNamespace'] = $voNamespace;
+        }
+
+        return self::fromDefinition(Shorthand::convertToJsonSchema($shorthand, $customData), $name);
     }
 
     /**

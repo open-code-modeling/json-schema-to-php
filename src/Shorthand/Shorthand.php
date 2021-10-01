@@ -88,8 +88,18 @@ final class Shorthand
                     break;
             }
 
+            // implicit sub value objects have to use voNamespace as namespace
             if (\is_array($shorthandDefinition)) {
-                $schema['properties'][$schemaProperty] = self::convertToJsonSchema($shorthandDefinition);
+                $subCustomData = $customData;
+                $namespace = $customData['voNamespace'] ?? '';
+
+                if ($namespace !== '') {
+                    $namespace = \rtrim($namespace, '/');
+                    unset($subCustomData['ns']); // remove abbreviation if any
+                    $subCustomData['namespace'] = $namespace;
+                }
+
+                $schema['properties'][$schemaProperty] = self::convertToJsonSchema($shorthandDefinition, $subCustomData);
             } elseif (\is_string($shorthandDefinition)) {
                 $schema['properties'][$schemaProperty] = self::convertShorthandStringToJsonSchema($shorthandDefinition, $customData);
             } else {
@@ -117,26 +127,35 @@ final class Shorthand
 
         $parts = \explode('|', $shorthandStr);
 
-        if (\mb_substr($parts[0], -2) === '[]') {
-            $itemsParts = [\mb_substr($parts[0], 0, -2)];
-            \array_push($itemsParts, ...\array_slice($parts, 1));
-
-            return [
-                'type' => 'array',
-                'items' => self::convertShorthandStringToJsonSchema(\implode('|', $itemsParts), $customData),
-            ];
-        }
-
         $type = $parts[0];
         $namespace = $customData['voNamespace'] ?? '';
-        $namespaceDetected = false !== \strpos($parts[0], '/');
+        $typeNamespaceDetected = false !== \strpos($type, '/');
 
         if ($namespace !== '') {
-            $namespace = \rtrim($namespace, '/') . '/';
+            $namespace = \rtrim($namespace, '/');
         }
 
-        if ($namespaceDetected) {
+        // it's an array, the collection / list class is created implicitly
+        if (\mb_substr($type, -2) === '[]') {
+            $itemsParts = [\mb_substr($type, 0, -2)];
+            \array_push($itemsParts, ...\array_slice($parts, 1));
+
+            $schema = [];
+
+            if ($namespace !== '') {
+                $schema['namespace'] = $namespace;
+            }
+
+            $schema['type'] = 'array';
+            $schema['items'] = self::convertShorthandStringToJsonSchema(\implode('|', $itemsParts), $customData);
+
+            return $schema;
+        }
+
+        if ($typeNamespaceDetected) {
             $namespace = self::extractNamespace($type);
+            $namespace = $namespace === '' ? '/' : $namespace;
+
             $type = self::extractType($type);
         }
 
@@ -163,18 +182,19 @@ final class Shorthand
                 $schema = self::populateSchema($parts);
                 $schema[$typeKey] = $typeValue;
 
-                if ($namespaceDetected) {
-                    $schema['namespace'] = \strlen($namespace) > 1 ? \rtrim($namespace, '/') : $namespace;
+                if ($namespace) {
+                    $schema['namespace'] = $namespace;
                 }
 
                 return $schema;
             default:
                 $schema = self::populateSchema($parts);
 
-                $schema['$ref'] = '#/definitions/' . \ltrim($namespace, '/') . $type;
+                $schema['$ref'] = '#/definitions/' . $type;
 
-                if ($namespaceDetected) {
-                    $schema['namespace'] = \strlen($namespace) > 1 ? \rtrim($namespace, '/') : $namespace;
+                if ($namespace) {
+                    $schema['namespace'] = $namespace;
+                    $schema['$ref'] = '#/definitions/' . \ltrim($namespace, '/') . '/' . $type;
                 }
 
                 return $schema;
@@ -245,6 +265,6 @@ final class Shorthand
 
     private static function extractNamespace(string $type): string
     {
-        return \substr($type, 0, \strrpos($type, '/') + 1);
+        return \substr($type, 0, \strrpos($type, '/'));
     }
 }
