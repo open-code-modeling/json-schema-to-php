@@ -131,8 +131,8 @@ final class Shorthand
         $namespace = $customData['voNamespace'] ?? '';
         $typeNamespaceDetected = false !== \strpos($type, '/');
 
-        if ($namespace !== '') {
-            $namespace = \rtrim($namespace, '/');
+        if ($namespace !== '' && $namespace !== '/') {
+            $namespace = '/' . \trim($namespace, '/');
         }
 
         // it's an array, the collection / list class is created implicitly
@@ -154,7 +154,10 @@ final class Shorthand
 
         if ($typeNamespaceDetected) {
             $namespace = self::extractNamespace($type);
-            $namespace = $namespace === '' ? '/' : $namespace;
+
+            if ($namespace !== '' && $namespace !== '/') {
+                $namespace = '/' . \trim($namespace, '/');
+            }
 
             $type = self::extractType($type);
         }
@@ -194,7 +197,7 @@ final class Shorthand
 
                 if ($namespace) {
                     $schema['namespace'] = $namespace;
-                    $schema['$ref'] = '#/definitions/' . \ltrim($namespace, '/') . '/' . $type;
+                    $schema['$ref'] = '#/definitions' . \rtrim($namespace, '/') . '/' . $type;
                 }
 
                 return $schema;
@@ -265,6 +268,6 @@ final class Shorthand
 
     private static function extractNamespace(string $type): string
     {
-        return \substr($type, 0, \strrpos($type, '/'));
+        return \substr($type, 0, \strrpos($type, '/') + 1);
     }
 }

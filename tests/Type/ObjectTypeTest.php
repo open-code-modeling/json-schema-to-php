@@ -186,7 +186,7 @@ final class ObjectTypeTest extends TestCase
         /** @var ReferenceType $billingAddress */
         $billingAddress = $properties['billing_address']->first();
         $this->assertInstanceOf(ReferenceType::class, $billingAddress);
-        $this->assertSame(['namespace' => 'Order'], $billingAddress->custom());
+        $this->assertSame(['namespace' => '/Order'], $billingAddress->custom());
 
         /** @var ArrayType $shippingAddress */
         $shippingAddress = $properties['shipping_address']->first();
@@ -196,7 +196,8 @@ final class ObjectTypeTest extends TestCase
         /** @var ReferenceType $address */
         $address = $shippingAddress->items()[0]->first();
         $this->assertInstanceOf(ReferenceType::class, $address);
-        $this->assertSame(['namespace' => 'Order'], $address->custom());
+        $this->assertSame(['namespace' => '/Order'], $address->custom());
+        $this->assertSame('#/definitions/Order/Address', $address->ref());
     }
 
     /**
@@ -383,12 +384,12 @@ final class ObjectTypeTest extends TestCase
         $paymentAddress = $subProperties['payment_address']->first();
         $this->assertInstanceOf(StringType::class, $paymentAddress);
         // value object defines it's own namespace
-        $this->assertSame(['namespace' => 'Payment'], $paymentAddress->custom());
+        $this->assertSame(['namespace' => '/Payment'], $paymentAddress->custom());
 
         /** @var ReferenceType $billingAddress */
         $billingAddress = $subProperties['billing_address']->first();
         $this->assertInstanceOf(ReferenceType::class, $billingAddress);
-        // reference value object use defined voNamespace because of missing namespace definition
+        // reference value object uses defined voNamespace because of missing namespace definition
         $this->assertSame(['namespace' => '/Shipping'], $billingAddress->custom());
         $this->assertSame('#/definitions/Shipping/Address', $billingAddress->ref());
 
